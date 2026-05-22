@@ -318,6 +318,13 @@ export default function App() {
     alert('Database spreadsheet berhasil direset ke nilai standard/default!');
   };
 
+  // Completely empty the spreadsheet database
+  const handleClearData = () => {
+    setSheetsData([]);
+    addLog('Administrator melakukan pengosongan total basis data spreadsheet.', 'warning');
+    alert('Seluruh basis data kelas dan nilai siswa telah berhasil dikosongkan!');
+  };
+
   const handleLogout = () => {
     setCurrentUser({ id: 'usr-guest', username: 'guest', fullName: 'Siswa / Orang Tua', password: '', role: 'Pengguna' });
     setActiveTab('dashboard');
@@ -623,6 +630,7 @@ export default function App() {
                       users={users}
                       onUpdateUsers={setUsers}
                       onTriggerDefaultReset={handleDefaultReset}
+                      onTriggerClearData={handleClearData}
                       syncUrl={syncUrl}
                       onUpdateSyncUrl={setSyncUrl}
                       onTriggerSync={() => handleTriggerSync(true)}
@@ -744,7 +752,7 @@ function LoginGate({ users, onLoginSuccess, themeStyles }: LoginProps) {
         />
         <div>
           <h2 className="text-base font-black tracking-tight text-slate-800 leading-tight text-center">SD Negeri Neglasari 02</h2>
-          <p className="text-[11px] text-slate-500 font-medium text-center">Sistem Rapor & Publikasi Nilai Ujian</p>
+          <p className="text-[11px] text-slate-500 font-medium text-center">Sistem Hasil Ujian Sekolah & Publikasi Nilai</p>
         </div>
       </div>
 
@@ -825,7 +833,7 @@ function LoginGate({ users, onLoginSuccess, themeStyles }: LoginProps) {
 
       <div className="text-center pt-2">
         <p className="text-[9px] text-slate-400 leading-relaxed font-semibold">
-          Standard keamanan terakreditasi • SD Negeri Neglasari 02 Portal Rapor v2.6.2
+          Standard keamanan terakreditasi • SD Negeri Neglasari 02 Portal Hasil Ujian Sekolah v2.6.2
         </p>
       </div>
     </div>

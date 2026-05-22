@@ -847,9 +847,9 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
         <div className="absolute top-2 right-4 text-3xl select-none opacity-20">🎒</div>
         <div className="space-y-1">
           <h2 className="text-base font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <span>Ayo Lihat Nilai Rapor Kamu! 🎒✨</span>
+            <span>Ayo Lihat Nilai Hasil Ujian Sekolah Kamu! 🎒✨</span>
           </h2>
-          <p className="text-[11px] text-slate-500 font-medium">Ketik nama lengkapmu di kolom bawah ini kemudian pilih namamnu untuk melihat nilai rapor lengkap ya!</p>
+          <p className="text-[11px] text-slate-500 font-medium">Ketik nama lengkapmu di kolom bawah ini kemudian pilih nama kamu untuk melihat nilai hasil Ujian Sekolah lengkap ya!</p>
         </div>
 
         <div className="relative">
@@ -910,7 +910,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                       </div>
                     </div>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 group-hover:bg-indigo-600 group-hover:text-white transition-all uppercase tracking-wider shrink-0">
-                      Rapor {stu.average}
+                      Ujian {stu.average}
                     </span>
                   </button>
                 );
@@ -943,7 +943,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">RAPOR HASIL BELAJAR</span>
+                <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">HASIL UJIAN SEKOLAH</span>
                 <h3 className="text-base font-black text-slate-800 mt-0.5">Rincian Siswa: {selectedStudent.name}</h3>
               </div>
             </div>
@@ -955,7 +955,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
               }}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm shadow-emerald-600/10 cursor-pointer"
             >
-              <span>Tutup Rapor & Kembali ke Beranda 📊</span>
+              <span>Tutup Hasil Ujian & Kembali ke Beranda 📊</span>
             </button>
           </div>
 
@@ -1115,7 +1115,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
               <div className="space-y-2">
                 <h3 className="text-lg font-black tracking-tight text-white leading-tight">Situs Sedang Bersiap! ⏳</h3>
                 <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-                  Sabar ya anak pintar! Portal pengumuman hasil ujian dan nilai rapor sedang dipersiapkan dan akan dibuka otomatis dalam hitungan mundur di bawah ini. Biasakan membaca dan tetap semangat ya!
+                  Sabar ya anak pintar! Portal pengumuman hasil Ujian Sekolah sedang dipersiapkan dan akan dibuka otomatis dalam hitungan mundur di bawah ini. Biasakan membaca dan tetap semangat ya!
                 </p>
               </div>
 

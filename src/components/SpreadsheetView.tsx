@@ -21,6 +21,40 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
   const activeSheet = sheetsData.find(s => s.id === activeTab) || sheetsData[0];
   const styles = THEME_STYLES[config.themeColor] || THEME_STYLES.indigo;
 
+  if (!activeSheet) {
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4 max-w-lg mx-auto my-12 shadow-sm animate-fade-in animate-duration-300" id="empty-spreadsheet-banner">
+        <div className="w-16 h-16 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center mx-auto shadow-xs border border-slate-100">
+          <FileSpreadsheet className="h-8 w-8 text-slate-400" />
+        </div>
+        <h3 className="text-base font-black text-slate-800">Dokumen Spreadsheet Kosong 📂</h3>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Semua basis data kelas dan nilai siswa telah dikosongkan. Anda dapat memperbaruinya kembali melalui menu <strong>Pusat Admin</strong> dengan Reset Default atau mari buat kelas pertama sekarang.
+        </p>
+        <button
+          onClick={() => {
+            onUpdateSheets([{
+              id: 'sheet-1',
+              name: 'Kelas 1-A',
+              subjects: [
+                { name: 'Matematika', category: 'Sains' },
+                { name: 'Bahasa Indonesia', category: 'Bahasa' },
+                { name: 'IPA', category: 'Sains' },
+                { name: 'IPS', category: 'Sosial' }
+              ],
+              students: []
+            }]);
+            setActiveTab('sheet-1');
+          }}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/10 transition-all cursor-pointer inline-flex items-center space-x-1.5"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Buat Kelas Standar</span>
+        </button>
+      </div>
+    );
+  }
+
   // Handles updating individual cell score
   const handleScoreChange = (studentId: string, subject: string, valStr: string) => {
     const rawVal = parseInt(valStr);
@@ -382,8 +416,8 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
             <tr>
               <th scope="col" className="px-3 py-2.5 text-left text-slate-500 font-bold border-r border-slate-100 w-12">No</th>
               <th scope="col" className="px-4 py-2.5 text-left text-slate-700 font-bold border-r border-slate-100 w-48">Nama Siswa</th>
-              {activeSheet.subjects.map((sub) => (
-                <th key={sub.name} scope="col" className="px-2 py-2.5 text-center text-slate-600 font-bold border-r border-[#e2e8f0] relative group w-28">
+              {activeSheet.subjects.map((sub, sIdx) => (
+                <th key={`${sub.name}-${sIdx}`} scope="col" className="px-2 py-2.5 text-center text-slate-600 font-bold border-r border-[#e2e8f0] relative group w-28">
                   <div className="flex flex-col items-center">
                     <span>{sub.name}</span>
                     <span className="text-[8px] font-normal text-slate-400 capitalize">{sub.category}</span>
@@ -416,13 +450,13 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
                     className="w-full bg-transparent border-b border-transparent focus:border-indigo-400 focus:outline-hidden font-bold"
                   />
                 </td>
-                {activeSheet.subjects.map((sub) => {
+                {activeSheet.subjects.map((sub, sIdx) => {
                   const val = student.scores[sub.name] !== undefined ? student.scores[sub.name] : 0;
                   const isEditing = editingCell?.studentId === student.id && editingCell?.subject === sub.name;
 
                   return (
                     <td
-                      key={sub.name}
+                      key={`${sub.name}-${sIdx}`}
                       onClick={() => setEditingCell({ studentId: student.id, subject: sub.name })}
                       className={`px-1 py-1 text-center border-r border-slate-100 font-mono text-xs cursor-pointer select-none transition-colors ${
                         val < config.kkm ? 'text-red-500 bg-red-50/10' : 'text-slate-700'

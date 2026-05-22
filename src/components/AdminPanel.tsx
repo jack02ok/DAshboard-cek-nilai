@@ -30,6 +30,7 @@ interface AdminPanelProps {
   users: UserAccount[];
   onUpdateUsers: (updated: UserAccount[]) => void;
   onTriggerDefaultReset: () => void;
+  onTriggerClearData: () => void;
   syncUrl: string;
   onUpdateSyncUrl: (val: string) => void;
   onTriggerSync: () => void;
@@ -45,6 +46,7 @@ export default function AdminPanel({
   users,
   onUpdateUsers,
   onTriggerDefaultReset,
+  onTriggerClearData,
   syncUrl,
   onUpdateSyncUrl,
   onTriggerSync,
@@ -403,19 +405,34 @@ export default function AdminPanel({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 font-semibold">Tersesat mengedit? Reset database:</span>
-              <button
-                onClick={() => {
-                  if (confirm('Ulangi basis data spreadsheet ke kondisi awal/default? Semua versi data saat ini akan terhapus.')) {
-                    onTriggerDefaultReset();
-                  }
-                }}
-                className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
-              >
-                <RefreshCw className="h-3 w-3" />
-                <span>Reset Default</span>
-              </button>
+            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="text-[10px] text-slate-400 font-semibold">Tersesat mengedit atau ingin memulai dari awal?</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm('Apakah Anda yakin ingin mengosongkan seluruh data kelas dan siswa? Semua nilai yang tersimpan akan dihapus.')) {
+                      onTriggerClearData();
+                    }
+                  }}
+                  className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  <span>Kosongkan Semua Data</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm('Ulangi basis data spreadsheet ke kondisi awal/default? Semua versi data saat ini akan terhapus.')) {
+                      onTriggerDefaultReset();
+                    }
+                  }}
+                  className="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-lg transition-colors cursor-pointer flex items-center space-x-1"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  <span>Reset Default</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -435,7 +452,7 @@ export default function AdminPanel({
         </div>
         
         <p className="text-xs text-slate-550 leading-relaxed">
-          Sebagai administrator, Anda dapat membatasi atau menyembunyikan data nilai ujian mana saja yang dapat dilihat oleh siswa maupun orang tua di modul pencarian. Cocok untuk menyederhanakan rapor agar ramah anak SD.
+          Sebagai administrator, Anda dapat membatasi atau menyembunyikan data nilai ujian mana saja yang dapat dilihat oleh siswa maupun orang tua di modul pencarian. Cocok untuk menyederhanakan tampilan hasil ujian agar ramah anak SD.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
@@ -498,7 +515,7 @@ export default function AdminPanel({
                   />
                 </div>
                 <h5 className="text-xs font-bold text-slate-800 mt-2">Nilai Rata-rata</h5>
-                <p className="text-[10px] text-slate-500 font-medium leading-tight">Menampilkan angka rata-rata raport gabungan pada dashboard depan siswa.</p>
+                <p className="text-[10px] text-slate-500 font-medium leading-tight">Menampilkan angka rata-rata Ujian Sekolah gabungan pada dashboard depan siswa.</p>
               </div>
               <span className={`text-[10px] font-bold mt-4 block ${config.showAverageToStudent ? 'text-indigo-600' : 'text-slate-400'}`}>
                 {config.showAverageToStudent ? '● Aktif (Angka)' : '○ Disembunyikan'}
@@ -542,7 +559,7 @@ export default function AdminPanel({
                   />
                 </div>
                 <h5 className="text-xs font-bold text-slate-800 mt-2">Nilai Detail</h5>
-                <p className="text-[10px] text-slate-500 font-medium leading-tight">Rapor lengkap sebaran tiap-tiap mata pelajaran dalam tabel accordion.</p>
+                <p className="text-[10px] text-slate-500 font-medium leading-tight">Hasil ujian sekolah lengkap sebaran tiap-tiap mata pelajaran dalam tabel accordion.</p>
               </div>
               <span className={`text-[10px] font-bold mt-4 block ${config.showDetailsToStudent ? 'text-purple-600' : 'text-slate-400'}`}>
                 {config.showDetailsToStudent ? '● Aktif' : '○ Disembunyikan'}

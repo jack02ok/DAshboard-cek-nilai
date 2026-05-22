@@ -13,13 +13,32 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
   const [selectedSheetId, setSelectedSheetId] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all'); // 'all' | 'lulus' | 'remedial'
+  const [selectedSubject, setSelectedSubject] = useState('all');
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
 
   const styles = THEME_STYLES[config.themeColor] || THEME_STYLES.indigo;
 
+  // Get all unique subjects across all classes
+  const allSubjects = useMemo(() => {
+    const subjectsSet = new Set<string>();
+    sheetsData.forEach((sheet) => {
+      sheet.subjects.forEach((sub) => {
+        if (sub.name) {
+          subjectsSet.add(sub.name);
+        }
+      });
+    });
+    return Array.from(subjectsSet).sort();
+  }, [sheetsData]);
+
   // Flatten students and append source sheet info, then filter in real-time
   const filteredStudents = useMemo(() => {
-    const list: (Student & { sheetName: string; sheetId: string; categoryStats: { total: number; average: number; count: number } })[] = [];
+    const list: (Student & { 
+      sheetName: string; 
+      sheetId: string; 
+      categoryStats: { total: number; average: number; count: number };
+      subjectScore: number | null;
+    })[] = [];
 
     sheetsData.forEach((sheet) => {
       sheet.students.forEach((student) => {
@@ -36,6 +55,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
         });
 
         const categoryAverage = categoryCount > 0 ? Math.round((categoryTotal / categoryCount) * 10) / 10 : 0;
+        const subjectScore = selectedSubject !== 'all' ? (student.scores[selectedSubject] !== undefined ? student.scores[selectedSubject] : null) : null;
 
         list.push({
           ...student,
@@ -45,7 +65,8 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
             total: categoryTotal,
             average: categoryAverage,
             count: categoryCount
-          }
+          },
+          subjectScore
         });
       });
     });
@@ -55,17 +76,26 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
       const matchName = std.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchLevel = selectedSheetId === 'all' || std.sheetId === selectedSheetId;
       const matchCategory = selectedCategory === 'all' || std.categoryStats.count > 0;
+      const matchSubject = selectedSubject === 'all' || std.subjectScore !== null;
       
-      // Determine pass/fail status based on category average if filtered, otherwise general average
-      const relevantAvg = selectedCategory === 'all' ? std.average : std.categoryStats.average;
+      // Determine pass/fail status based on chosen filter
+      let relevantAvg = 0;
+      if (selectedSubject !== 'all') {
+        relevantAvg = std.subjectScore !== null ? std.subjectScore : 0;
+      } else if (selectedCategory === 'all') {
+        relevantAvg = std.average;
+      } else {
+        relevantAvg = std.categoryStats.average;
+      }
+      
       const isPassed = relevantAvg >= config.kkm;
       const matchStatus = selectedStatus === 'all' || 
                          (selectedStatus === 'lulus' && isPassed) || 
                          (selectedStatus === 'remedial' && !isPassed);
 
-      return matchName && matchLevel && matchCategory && matchStatus;
+      return matchName && matchLevel && matchCategory && matchSubject && matchStatus;
     });
-  }, [sheetsData, searchTerm, selectedSheetId, selectedCategory, selectedStatus, config.kkm]);
+  }, [sheetsData, searchTerm, selectedSheetId, selectedCategory, selectedSubject, selectedStatus, config.kkm]);
 
   // Quick action to toggle card expansion
   const toggleStudentExpand = (id: string) => {
@@ -113,10 +143,25 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="bg-transparent border-0 py-0.5 focus:ring-0 focus:outline-hidden"
               >
-                <option value="all">Semua Pelajaran</option>
+                <option value="all">Semua Kategori</option>
                 <option value="Sains">Sains & Eksak</option>
                 <option value="Sosial">Sosial Humaniora</option>
                 <option value="Bahasa">Bahasa & Seni</option>
+              </select>
+            </div>
+
+            {/* Individual Subject filter */}
+            <div className="flex items-center space-x-1 border border-slate-200 bg-white rounded-lg px-2 py-1 text-xs text-slate-600">
+              <span className="font-medium text-slate-400">Mapel:</span>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="bg-transparent border-0 py-0.5 focus:ring-0 focus:outline-hidden font-bold text-slate-700"
+              >
+                <option value="all">Semua Mapel</option>
+                {allSubjects.map((sub) => (
+                  <option key={sub} value={sub}>{sub}</option>
+                ))}
               </select>
             </div>
 
@@ -142,16 +187,22 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
             <Sparkles className="h-3 w-3 text-amber-500" />
             <span>Hasil Pencarian: <strong>{filteredStudents.length} siswa</strong> kecocokan ditemukan.</span>
           </div>
-          {selectedCategory !== 'all' && (
+          {selectedSubject !== 'all' ? (
+            <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-medium border border-indigo-100 italic">
+              * Menampilkan fokus nilai individu mata pelajaran: <strong>{selectedSubject}</strong>
+            </span>
+          ) : selectedCategory !== 'all' ? (
             <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-medium border border-amber-100 italic">
               * Rerata disesuaikan menampilkan nilai rumpun mata pelajaran {selectedCategory} saja
             </span>
-          )}
+          ) : null}
         </div>
       </div>      {/* Grid of student progress cards */}
       <div id="filtered-students-list" className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredStudents.map((std) => {
-          const displayedAverage = selectedCategory === 'all' ? std.average : std.categoryStats.average;
+          const displayedAverage = selectedSubject !== 'all'
+            ? (std.subjectScore !== null ? std.subjectScore : 0)
+            : (selectedCategory === 'all' ? std.average : std.categoryStats.average);
           const isPassed = displayedAverage >= config.kkm;
           const isExpanded = expandedStudentId === std.id;
 
@@ -251,14 +302,16 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                 <div className="text-right">
                   {config.showAverageToStudent !== false ? (
                     <>
-                      <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">Rata-Rata Nilai</p>
+                      <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">
+                        {selectedSubject !== 'all' ? `Nilai ${selectedSubject}` : selectedCategory !== 'all' ? `Rerata ${selectedCategory}` : 'Rata-Rata Nilai'}
+                      </p>
                       <p className={`text-xl font-black font-mono leading-none ${isPassed ? 'text-emerald-650' : 'text-rose-500'}`}>
                         {displayedAverage}
                       </p>
                     </>
                   ) : (
                     <div className="text-slate-400 text-[10px] italic font-semibold">
-                      Nilai Rapor
+                      Hasil Ujian
                     </div>
                   )}
 
@@ -336,31 +389,41 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                 <div className="border-t border-slate-100 p-4 bg-white/50 space-y-3">
                   <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-1.5">
                     <BookOpen className="h-3.5 w-3.5 text-indigo-500" />
-                    <span>📚 Raport Nilai Per Pelajaran Sekolah</span>
+                    <span>📚 Hasil Ujian Sekolah Per Pelajaran</span>
                   </h5>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {Object.entries(std.scores).map(([subject, val]) => {
                       const score = Number(val);
                       const category = getSubjectCategory(subject);
                       const isCatActive = selectedCategory === 'all' || category === selectedCategory;
+                      const isSubjActive = selectedSubject === 'all' || subject === selectedSubject;
 
                       return (
                         <div
                           key={subject}
                           className={`p-2.5 rounded-xl border-2 flex justify-between items-center transition-all ${
-                            isCatActive 
-                              ? score >= config.kkm 
-                                ? 'bg-emerald-50/40 border-emerald-200 opacity-100' 
-                                : 'bg-rose-50/40 border-rose-200 opacity-100'
-                              : 'bg-slate-50/30 border-slate-200/50 opacity-40'
+                            selectedSubject !== 'all'
+                              ? isSubjActive
+                                ? 'bg-indigo-50 border-indigo-500 scale-102 ring-2 ring-indigo-500/10 shadow-xs opacity-100'
+                                : 'bg-slate-50/20 border-slate-200/40 opacity-40'
+                              : isCatActive 
+                                ? score >= config.kkm 
+                                  ? 'bg-emerald-50/40 border-emerald-200 opacity-100' 
+                                  : 'bg-rose-50/40 border-rose-200 opacity-100'
+                                : 'bg-slate-50/30 border-slate-200/50 opacity-40'
                           }`}
                         >
                           <div className="truncate pr-1">
-                            <p className="font-extrabold text-slate-800 truncate">{subject}</p>
+                            <p className="font-extrabold text-slate-800 truncate flex items-center gap-1">
+                              {isSubjActive && selectedSubject !== 'all' && <Star className="h-3 w-3 text-amber-500 fill-amber-500 shrink-0" />}
+                              <span>{subject}</span>
+                            </p>
                             <p className="text-[8px] text-slate-400 capitalize bg-slate-100 px-1 py-0.2 rounded inline-block font-mono mt-0.5">{category}</p>
                           </div>
                           <span className={`font-mono font-black px-2 py-1 rounded-lg text-[12px] ${
-                            score >= config.kkm ? 'text-emerald-700 bg-emerald-100/60' : 'text-rose-700 bg-rose-100/60'
+                            score >= config.kkm 
+                              ? isSubjActive && selectedSubject !== 'all' ? 'text-indigo-700 bg-indigo-150 font-bold' : 'text-emerald-700 bg-emerald-100/60' 
+                              : 'text-rose-700 bg-rose-100/60'
                           }`}>
                             {score}
                           </span>
@@ -369,7 +432,16 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                     })}
                   </div>
 
-                  {selectedCategory !== 'all' && (
+                  {selectedSubject !== 'all' && (
+                    <div className="p-2.5 bg-indigo-50 rounded-xl text-[10px] text-indigo-850 flex items-start space-x-2 border border-indigo-200">
+                      <AlertCircle className="h-3.5 w-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                      <p className="leading-normal">
+                        Fokus visual menampilkan mata pelajaran <strong>{selectedSubject}</strong> dengan pencapaian skor <strong>{displayedAverage}</strong>. Status Kelulusan: <strong>{isPassed ? 'TUNTAS (LULUS)' : 'BELUM TUNTAS (REMEDIAL)'}</strong>.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCategory !== 'all' && selectedSubject === 'all' && (
                     <div className="p-2.5 bg-amber-50 rounded-xl text-[10px] text-amber-850 flex items-start space-x-2 border border-amber-200">
                       <AlertCircle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
                       <p className="leading-normal">

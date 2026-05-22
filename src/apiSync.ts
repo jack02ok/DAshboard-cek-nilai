@@ -45,13 +45,27 @@ export function sanitizeAndCleanSheetData(
     const sheetId = sheet.id || `sheet-${sIdx + 1}`;
     const sheetName = (sheet.name || `Sheet ${sIdx + 1}`).trim();
     
-    // Clean subjects list
-    const subjects = Array.isArray(sheet.subjects) 
-      ? sheet.subjects.map((sub: any) => ({
-          name: String(sub.name || 'Pelajaran').trim(),
-          category: getSubjectCategory(String(sub.name))
-        }))
-      : [];
+    // Clean and deduplicate subjects list
+    const seenSubjects = new Set<string>();
+    const originalNames: string[] = [];
+    const subjects = (Array.isArray(sheet.subjects) ? sheet.subjects : []).map((sub: any) => {
+      const origName = String(sub.name || 'Pelajaran').trim();
+      originalNames.push(origName);
+
+      const baseName = origName || 'Pelajaran';
+      let uniqueName = baseName;
+      let count = 1;
+      while (seenSubjects.has(uniqueName.toLowerCase())) {
+        uniqueName = `${baseName} ${count}`;
+        count++;
+      }
+      seenSubjects.add(uniqueName.toLowerCase());
+
+      return {
+        name: uniqueName,
+        category: getSubjectCategory(uniqueName)
+      };
+    });
 
     // Clean student entries
     const cleanedStudents: Student[] = (Array.isArray(sheet.students) ? sheet.students : [])
@@ -74,8 +88,16 @@ export function sanitizeAndCleanSheetData(
         const cleanedScores: Record<string, number> = {};
         
         // Guarantee every subject defined has a score
-        subjects.forEach((sub) => {
-          const rawScore = stu.scores ? stu.scores[sub.name] : undefined;
+        subjects.forEach((sub, subIdx) => {
+          const origName = originalNames[subIdx];
+          let rawScore = undefined;
+          if (stu.scores) {
+            if (stu.scores[sub.name] !== undefined) {
+              rawScore = stu.scores[sub.name];
+            } else if (stu.scores[origName] !== undefined) {
+              rawScore = stu.scores[origName];
+            }
+          }
           
           if (rawScore === undefined || rawScore === null) {
             cleanedScores[sub.name] = 75; // school default KKM starting limit
