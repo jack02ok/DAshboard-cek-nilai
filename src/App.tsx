@@ -550,7 +550,7 @@ export default function App() {
 
               <div className="space-y-3">
                 <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">STATUS PORTAL: SEDANG DITUTUP 🔒</h2>
-                <p className="text-xs sm:text-sm text-slate-450 max-w-lg mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm text-white/90 max-w-lg mx-auto leading-relaxed">
                   Maaf, saat ini administrator sekolah sedang menutup portal publik data nilai untuk pengerjaan rekapitulasi data atau persiapan rapat pleno.
                 </p>
               </div>
@@ -558,23 +558,23 @@ export default function App() {
               {/* Countdown layout if timer is actively running */}
               {blockedCountdown !== null && blockedCountdown > 0 ? (
                 <div className="bg-slate-900/90 inline-block px-10 py-6 rounded-3xl border border-slate-800 shadow-xl ring-1 ring-slate-800/50">
-                  <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block mb-1">WAKTU MUNDUR PEMBUKAAN PORTAL</span>
+                  <span className="text-[10px] font-black tracking-widest text-white/80 uppercase block mb-1">WAKTU MUNDUR PEMBUKAAN PORTAL</span>
                   <div className="font-mono text-3xl sm:text-4xl font-extrabold text-amber-400 tracking-wider animate-pulse leading-none py-1">
                     {formatCountdown(blockedCountdown)}
                   </div>
-                  <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-400 mt-1">
+                  <div className="flex items-center justify-center space-x-1.5 text-xs text-white/80 mt-1">
                     <Clock className="w-3.5 h-3.5 text-amber-500 animate-spin" />
                     <span>Situs Pengumuman Akan Terbuka Otomatis</span>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800/85 text-xs text-slate-350 max-w-sm mx-auto font-medium">
+                <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800/85 text-xs text-white/90 max-w-sm mx-auto font-medium">
                   🕒 Akses data ditutup secara manual oleh Administrator. Silakan tunggu informasi pembukaan berikutnya dari pihak sekolah.
                 </div>
               )}
 
               <div className="pt-6 border-t border-slate-900 space-y-4">
-                <p className="text-[10px] sm:text-xs text-slate-500 leading-normal max-w-md mx-auto">
+                <p className="text-[10px] sm:text-xs text-white/70 leading-normal max-w-md mx-auto">
                   Hubungi wali kelas masing-masing jika sandi admin diperlukan untuk rekonfigurasi. Kredensial masuk dibatasi aman.
                 </p>
                 <div className="flex justify-center">

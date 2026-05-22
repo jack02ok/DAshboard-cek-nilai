@@ -1123,29 +1123,29 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
                 <div className="space-y-3">
                   <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">PENGUMUMAN HASIL UJIAN SEKOLAH SEDANG BERSIAP!</h3>
-                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl mx-auto">
+                  <p className="text-xs sm:text-sm text-white/90 leading-relaxed max-w-xl mx-auto">
                     Sabar ya anak pintar! Portal pengumuman hasil Ujian Sekolah SD Negeri Neglasari 02 sedang dipersiapkan dan akan dibuka otomatis sesuai waktu hitung mundur di bawah ini. Biasakan berdoa dan tetap optimis!
                   </p>
                 </div>
 
                 {blockedCountdown !== null && blockedCountdown > 0 ? (
                   <div className="bg-slate-900/90 inline-block px-10 py-6 rounded-3xl border border-slate-800 shadow-lg ring-1 ring-slate-800/50">
-                    <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase block mb-1">COUNTDOWN KEMUNDURAN PEMBUKAAN:</span>
+                    <span className="text-[10px] font-black tracking-widest text-white/80 uppercase block mb-1">COUNTDOWN KEMUNDURAN PEMBUKAAN:</span>
                     <div className="font-mono text-4xl sm:text-5xl font-black text-amber-450 tracking-wider animate-pulse leading-none py-1">
                       {formatCountdown(blockedCountdown)}
                     </div>
-                    <div className="flex items-center justify-center space-x-1.5 text-[11px] text-slate-400 mt-2">
+                    <div className="flex items-center justify-center space-x-1.5 text-[11px] text-white/85 mt-2">
                       <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
                       <span>Situs Pengumuman Akan Terbuka Otomatis</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-805 text-xs text-slate-350 max-w-sm mx-auto font-medium">
+                  <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-805 text-xs text-white/90 max-w-sm mx-auto font-medium">
                     🔒 Portal sedang terkunci <strong>Manual</strong>. Akses pengumuman nilai akan segera dibuka oleh panitia sekolah setelah keputusan rapat akhir diterbitkan.
                   </div>
                 )}
 
-                <div className="pt-6 border-t border-slate-900 text-xs text-slate-500 font-medium max-w-sm mx-auto leading-normal">
+                <div className="pt-6 border-t border-slate-900 text-xs text-white/70 font-medium max-w-sm mx-auto leading-normal">
                   Info resmi Panitia Ujian SDN Neglasari 02. Harap tanyakan sandi admin ke wali kelas jika rekonfigurasi diperlukan.
                 </div>
               </div>
