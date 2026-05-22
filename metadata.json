@@ -1,0 +1,6 @@
+{
+  "name": "Dashboard Spreadsheet Nilai",
+  "description": "Visualisasi data nilai dari spreadsheet 3 sheet dengan dasbor interaktif, pencarian siswa, filter mata pelajaran, akun admin, serta buka-tutup akses data dengan hitung mundur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
