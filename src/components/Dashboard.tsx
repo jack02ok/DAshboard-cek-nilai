@@ -865,7 +865,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              className="w-full bg-slate-50 border-2 border-slate-200 focus:border-indigo-505 rounded-2xl pl-11 pr-10 py-2.5 text-xs focus:outline-hidden font-bold text-slate-800 shadow-inner"
+              className="w-full bg-slate-50 border-2 border-slate-200 focus:border-indigo-505 rounded-2xl pl-11 pr-10 py-2.5 text-xs focus:outline-hidden font-bold text-slate-800 shadow-inner transition-transform duration-200 hover:scale-[1.01] focus:scale-[1.01]"
             />
             {suggestionSearch && (
               <button

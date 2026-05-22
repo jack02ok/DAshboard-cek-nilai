@@ -115,7 +115,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
               placeholder="Cari siswa berdasarkan nama secara real-time..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-hidden font-medium"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-hidden font-medium transition-transform duration-200 hover:scale-[1.01] focus:scale-[1.01]"
             />
           </div>
 

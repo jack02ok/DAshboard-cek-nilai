@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from './firebase';
 import { SheetData, DashboardConfig, AccessControl, UserAccount, CleanseLog } from './types';
 import { INITIAL_SHEETS_DATA, THEME_STYLES } from './data';
 import { fetchSpreadsheetDataFromUrl, sanitizeAndCleanSheetData } from './apiSync';
@@ -175,11 +177,129 @@ export default function App() {
     ]);
   };
 
-  // Sync state to localstorage
-  useEffect(() => {
-    localStorage.setItem('school_users_v1', JSON.stringify(users));
-  }, [users]);
+  // --- REAL-TIME PORTAL SYNCHRONIZATION WITH FIRESTORE ---
 
+  useEffect(() => {
+    // 1. Config & Sync URL Real-time Sync
+    const unsubConfig = onSnapshot(doc(db, 'portal_data', 'config'), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setConfig(prev => ({
+          ...prev,
+          kkm: typeof data.kkm === 'number' ? data.kkm : prev.kkm,
+          title: typeof data.title === 'string' ? data.title : prev.title,
+          chartType: data.chartType || prev.chartType,
+          themeColor: data.themeColor || prev.themeColor,
+          showDetailsToStudent: data.showDetailsToStudent !== undefined ? data.showDetailsToStudent : prev.showDetailsToStudent,
+          showAverageToStudent: data.showAverageToStudent !== undefined ? data.showAverageToStudent : prev.showAverageToStudent,
+          showRankToStudent: data.showRankToStudent !== undefined ? data.showRankToStudent : prev.showRankToStudent,
+          showStarsToStudent: data.showStarsToStudent !== undefined ? data.showStarsToStudent : prev.showStarsToStudent,
+          showQuotesToStudent: data.showQuotesToStudent !== undefined ? data.showQuotesToStudent : prev.showQuotesToStudent,
+        }));
+        if (data.syncUrl) {
+          setSyncUrl(data.syncUrl);
+        }
+      } else {
+        // First-run bootstrap
+        const initialConfig = {
+          kkm: 75,
+          title: 'SD Negeri Neglasari 02',
+          chartType: 'composed',
+          themeColor: 'indigo',
+          showDetailsToStudent: true,
+          showAverageToStudent: true,
+          showRankToStudent: true,
+          showStarsToStudent: true,
+          showQuotesToStudent: true,
+          syncUrl: 'https://docs.google.com/spreadsheets/d/15STZJkMcBKc6pdj2mr4J7G3OkQpKernKla8U5cD8McU/export?format=csv'
+        };
+        setDoc(doc(db, 'portal_data', 'config'), initialConfig).catch(console.error);
+        localStorage.setItem('dashboard_config_v1', JSON.stringify(initialConfig));
+      }
+    });
+
+    // 2. Access lock & timer state
+    const unsubAccess = onSnapshot(doc(db, 'portal_data', 'access'), (snapshot) => {
+      if (snapshot.exists()) {
+        setAccess(snapshot.data() as AccessControl);
+      } else {
+        const initialAccess: AccessControl = {
+          isDataVisible: true,
+          timerEndTime: null,
+          timerAction: null,
+          timerDurationSeconds: 0
+        };
+        setDoc(doc(db, 'portal_data', 'access'), initialAccess).catch(console.error);
+        localStorage.setItem('portal_access_v1', JSON.stringify(initialAccess));
+      }
+    });
+
+    // 3. Spreadsheet Sheets Data
+    const unsubSheets = onSnapshot(doc(db, 'portal_data', 'sheets'), (snapshot) => {
+      if (snapshot.exists()) {
+        const payload = snapshot.data();
+        if (payload && Array.isArray(payload.data)) {
+          setSheetsData(payload.data);
+        }
+      } else {
+        setDoc(doc(db, 'portal_data', 'sheets'), { data: INITIAL_SHEETS_DATA }).catch(console.error);
+        localStorage.setItem('sheet_data_v1', JSON.stringify(INITIAL_SHEETS_DATA));
+      }
+    });
+
+    // 4. Admin and Users logins roster
+    const unsubUsers = onSnapshot(doc(db, 'portal_data', 'users'), (snapshot) => {
+      if (snapshot.exists()) {
+        const payload = snapshot.data();
+        if (payload && Array.isArray(payload.data)) {
+          setUsers(payload.data);
+        }
+      } else {
+        setDoc(doc(db, 'portal_data', 'users'), { data: DEFAULT_USERS }).catch(console.error);
+        localStorage.setItem('school_users_v1', JSON.stringify(DEFAULT_USERS));
+      }
+    });
+
+    // 5. Historical sync charts
+    const unsubHistory = onSnapshot(doc(db, 'portal_data', 'syncHistory'), (snapshot) => {
+      if (snapshot.exists()) {
+        const payload = snapshot.data();
+        if (payload && Array.isArray(payload.data)) {
+          setSyncHistory(payload.data);
+        }
+      } else {
+        const history: any[] = [];
+        const times = ['08:00', '09:00', '10:00', '11:00', '12:00'];
+        const modifiers = [-4.0, -2.5, -1.0, 1.5, 0];
+
+        times.forEach((t, i) => {
+          const classAverages: Record<string, number> = {};
+          INITIAL_SHEETS_DATA.forEach((s: any) => {
+            const baseAvg = s.students.length > 0
+              ? Math.round((s.students.reduce((acc: number, stu: any) => acc + stu.average, 0) / s.students.length) * 10) / 10
+              : 75;
+            classAverages[s.name] = Math.round(Math.min(100, Math.max(0, baseAvg + modifiers[i] + (i % 2 === 0 ? 0.3 : -0.3))) * 10) / 10;
+          });
+          history.push({
+            timestamp: t,
+            classAverages
+          });
+        });
+        setDoc(doc(db, 'portal_data', 'syncHistory'), { data: history }).catch(console.error);
+        localStorage.setItem('sync_history_v1', JSON.stringify(history));
+      }
+    });
+
+    return () => {
+      unsubConfig();
+      unsubAccess();
+      unsubSheets();
+      unsubUsers();
+      unsubHistory();
+    };
+  }, []);
+
+  // Sync user logging sessions in localStorage for easy restoration
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem('school_logged_user_v1', JSON.stringify(currentUser));
@@ -188,47 +308,93 @@ export default function App() {
     }
   }, [currentUser]);
 
+  // Keep offline fallback caching in localStorage up-to-date
+  useEffect(() => {
+    localStorage.setItem('school_users_v1', JSON.stringify(users));
+  }, [users]);
+
   useEffect(() => {
     localStorage.setItem('sheet_data_v1', JSON.stringify(sheetsData));
+    localStorage.setItem('dashboard_config_v1', JSON.stringify(config));
+    localStorage.setItem('portal_access_v1', JSON.stringify(access));
+    localStorage.setItem('spreadsheet_sync_url_v1', syncUrl);
+  }, [sheetsData, config, access, syncUrl]);
 
-    // Automatically append latest classroom averages to sync history
-    setSyncHistory(prev => {
-      const currentAverages: Record<string, number> = {};
-      sheetsData.forEach(s => {
-        const sum = s.students.reduce((acc, stu) => acc + stu.average, 0);
-        currentAverages[s.name] = s.students.length > 0 ? Math.round((sum / s.students.length) * 10) / 10 : 0;
-      });
-
-      if (prev.length > 0) {
-        const lastRecord = prev[prev.length - 1];
-        const isIdentical = Object.keys(currentAverages).every(k => lastRecord.classAverages[k] === currentAverages[k]);
-        if (isIdentical && Object.keys(lastRecord.classAverages).length === Object.keys(currentAverages).length) {
-          return prev;
-        }
-      }
-
-      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const newRecord = { timestamp: nowStr, classAverages: currentAverages };
-      const nextHistory = [...prev, newRecord];
-      return nextHistory.slice(-15); // clamp at 15 history points
+  // Sync log of classroom averages to Firestore when recalculations happen
+  useEffect(() => {
+    // Recalculate sync history trends when sheet data is mutated
+    const currentAverages: Record<string, number> = {};
+    sheetsData.forEach(s => {
+      const sum = s.students.reduce((acc, stu) => acc + stu.average, 0);
+      currentAverages[s.name] = s.students.length > 0 ? Math.round((sum / s.students.length) * 10) / 10 : 0;
     });
+
+    if (syncHistory.length > 0) {
+      const lastRecord = syncHistory[syncHistory.length - 1];
+      const isIdentical = Object.keys(currentAverages).every(k => lastRecord.classAverages[k] === currentAverages[k]);
+      if (isIdentical && Object.keys(lastRecord.classAverages).length === Object.keys(currentAverages).length) {
+        return;
+      }
+    }
+
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const newRecord = { timestamp: nowStr, classAverages: currentAverages };
+    const nextHistory = [...syncHistory, newRecord].slice(-15);
+
+    setSyncHistory(nextHistory);
+    localStorage.setItem('sync_history_v1', JSON.stringify(nextHistory));
+
+    // Upload to shared database if current is Admin
+    if (currentUser.role === 'Admin') {
+      setDoc(doc(db, 'portal_data', 'syncHistory'), { data: nextHistory }).catch(console.error);
+    }
   }, [sheetsData]);
 
-  useEffect(() => {
-    localStorage.setItem('sync_history_v1', JSON.stringify(syncHistory));
-  }, [syncHistory]);
+  // Active persistence triggers for operations
+  const handleUpdateUsers = async (newUsers: UserAccount[]) => {
+    setUsers(newUsers);
+    try {
+      await setDoc(doc(db, 'portal_data', 'users'), { data: newUsers });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem('dashboard_config_v1', JSON.stringify(config));
-  }, [config]);
+  const handleUpdateSheetsData = async (newData: SheetData[]) => {
+    setSheetsData(newData);
+    try {
+      await setDoc(doc(db, 'portal_data', 'sheets'), { data: newData });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem('portal_access_v1', JSON.stringify(access));
-  }, [access]);
+  const handleUpdateConfig = async (newConfig: DashboardConfig) => {
+    setConfig(newConfig);
+    try {
+      await setDoc(doc(db, 'portal_data', 'config'), { ...newConfig, syncUrl });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-  useEffect(() => {
-    localStorage.setItem('spreadsheet_sync_url_v1', syncUrl);
-  }, [syncUrl]);
+  const handleUpdateAccess = async (newAccess: AccessControl) => {
+    setAccess(newAccess);
+    try {
+      await setDoc(doc(db, 'portal_data', 'access'), newAccess);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateSyncUrl = async (newUrl: string) => {
+    setSyncUrl(newUrl);
+    try {
+      await setDoc(doc(db, 'portal_data', 'config'), { ...config, syncUrl: newUrl });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Handle active countdown from App perspective for locked screen
   useEffect(() => {
@@ -244,27 +410,30 @@ export default function App() {
       if (difference <= 0) {
         clearInterval(interval);
         const nextVisibility = access.timerAction === 'open';
-        setAccess({
+        const updatedAccess: AccessControl = {
           isDataVisible: nextVisibility,
           timerEndTime: null,
           timerAction: null,
           timerDurationSeconds: 0
-        });
+        };
+        setAccess(updatedAccess);
+        if (currentUser.role === 'Admin') {
+          setDoc(doc(db, 'portal_data', 'access'), updatedAccess).catch(console.error);
+        }
         addLog(`Timer Habis: Status visibilitas diubah otomatis menjadi ${nextVisibility ? 'DIBUKA' : 'DITUTUP'}.`, 'info');
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [access.timerEndTime, access.timerAction]);
+  }, [access.timerEndTime, access.timerAction, currentUser.role]);
 
   // Trigger hourly synchronization mechanism
   useEffect(() => {
     const timer = setInterval(() => {
       setNextSyncSeconds(prev => {
         if (prev <= 1) {
-          // Trigger automatic API standard sync
           handleTriggerSync(false);
-          return 3600; // Reset
+          return 3600;
         }
         return prev - 1;
       });
@@ -282,6 +451,7 @@ export default function App() {
       const fetchedAndCleansed = await fetchSpreadsheetDataFromUrl(syncUrl, addLog);
       if (fetchedAndCleansed && fetchedAndCleansed.length > 0) {
         setSheetsData(fetchedAndCleansed);
+        await setDoc(doc(db, 'portal_data', 'sheets'), { data: fetchedAndCleansed });
         setLastSyncTime(new Date().toLocaleTimeString());
         addLog('Pembaruan basis data visualisasi berhasil disinkronkan & dibersihkan.', 'success');
       } else {
@@ -295,32 +465,50 @@ export default function App() {
   };
 
   // Trigger system data complete reset
-  const handleDefaultReset = () => {
-    setSheetsData(INITIAL_SHEETS_DATA);
-    setConfig({
+  const handleDefaultReset = async () => {
+    const defaultSheets = INITIAL_SHEETS_DATA;
+    const defaultConfig = {
       kkm: 75,
       title: 'SD Negeri Neglasari 02',
-      chartType: 'composed',
-      themeColor: 'indigo',
+      chartType: 'composed' as const,
+      themeColor: 'indigo' as const,
       showDetailsToStudent: true,
       showAverageToStudent: true,
       showRankToStudent: true,
       showStarsToStudent: true,
       showQuotesToStudent: true
-    });
-    setAccess({
+    };
+    const defaultAccess = {
       isDataVisible: true,
       timerEndTime: null,
       timerAction: null,
       timerDurationSeconds: 0
-    });
+    };
+
+    setSheetsData(defaultSheets);
+    setConfig(defaultConfig);
+    setAccess(defaultAccess);
+
+    try {
+      await setDoc(doc(db, 'portal_data', 'sheets'), { data: defaultSheets });
+      await setDoc(doc(db, 'portal_data', 'config'), { ...defaultConfig, syncUrl: 'https://docs.google.com/spreadsheets/d/15STZJkMcBKc6pdj2mr4J7G3OkQpKernKla8U5cD8McU/export?format=csv' });
+      await setDoc(doc(db, 'portal_data', 'access'), defaultAccess);
+    } catch (err) {
+      console.error(err);
+    }
+
     addLog('Administrator melakukan reset basis data spreadsheet ke kondisi standard.', 'warning');
     alert('Database spreadsheet berhasil direset ke nilai standard/default!');
   };
 
   // Completely empty the spreadsheet database
-  const handleClearData = () => {
+  const handleClearData = async () => {
     setSheetsData([]);
+    try {
+      await setDoc(doc(db, 'portal_data', 'sheets'), { data: [] });
+    } catch (err) {
+      console.error(err);
+    }
     addLog('Administrator melakukan pengosongan total basis data spreadsheet.', 'warning');
     alert('Seluruh basis data kelas dan nilai siswa telah berhasil dikosongkan!');
   };
@@ -637,7 +825,7 @@ export default function App() {
                   {activeTab === 'spreadsheet' && currentUser.role === 'Admin' && (
                     <SpreadsheetView
                       sheetsData={sheetsData}
-                      onUpdateSheets={setSheetsData}
+                      onUpdateSheets={handleUpdateSheetsData}
                       config={config}
                     />
                   )}
@@ -645,15 +833,15 @@ export default function App() {
                   {activeTab === 'admin' && currentUser.role === 'Admin' && (
                     <AdminPanel
                       config={config}
-                      onUpdateConfig={setConfig}
+                      onUpdateConfig={handleUpdateConfig}
                       access={access}
-                      onUpdateAccess={setAccess}
+                      onUpdateAccess={handleUpdateAccess}
                       users={users}
-                      onUpdateUsers={setUsers}
+                      onUpdateUsers={handleUpdateUsers}
                       onTriggerDefaultReset={handleDefaultReset}
                       onTriggerClearData={handleClearData}
                       syncUrl={syncUrl}
-                      onUpdateSyncUrl={setSyncUrl}
+                      onUpdateSyncUrl={handleUpdateSyncUrl}
                       onTriggerSync={() => handleTriggerSync(true)}
                       syncLogs={syncLogs}
                       nextSyncSeconds={nextSyncSeconds}

@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "DashboardConfig": {
+      "title": "DashboardConfig",
+      "description": "General settings of the board or school portal.",
+      "type": "object",
+      "properties": {
+        "kkm": { "type": "number", "description": "Kriteria Ketuntasan Minimal, default is 75" },
+        "title": { "type": "string", "description": "Portal title" },
+        "chartType": { "type": "string", "description": "Active graph standard type" },
+        "themeColor": { "type": "string", "description": "Active color design pattern" },
+        "showDetailsToStudent": { "type": "boolean", "description": "Render specific subject scores to students" },
+        "showAverageToStudent": { "type": "boolean", "description": "Render average to students" },
+        "showRankToStudent": { "type": "boolean", "description": "Render grade or pass states" },
+        "showStarsToStudent": { "type": "boolean", "description": "Render stars badge" },
+        "showQuotesToStudent": { "type": "boolean", "description": "Render motivational card" },
+        "syncUrl": { "type": "string", "description": "Current CSV export target link" }
+      },
+      "required": ["kkm", "title", "chartType", "themeColor"]
+    },
+    "AccessControl": {
+      "title": "AccessControl",
+      "description": "State indicators of portal locking timer action lists.",
+      "type": "object",
+      "properties": {
+        "isDataVisible": { "type": "boolean", "description": "Visibility flag for non-admin students" },
+        "timerEndTime": { "type": "number", "description": "Epoch timestamp of lock countdown end" },
+        "timerAction": { "type": "string", "description": "Final scheduled operation" },
+        "timerDurationSeconds": { "type": "number", "description": "Configured timer duration seconds" }
+      },
+      "required": ["isDataVisible"]
+    },
+    "SheetsCollection": {
+      "title": "SheetsCollection",
+      "description": "The imported students spreadsheets container payload.",
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "description": "The dynamic sheet data sheets containing students and categories lists"
+        }
+      },
+      "required": ["data"]
+    },
+    "UsersCollection": {
+      "title": "UsersCollection",
+      "description": "User accounts configuration.",
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "description": "The accounts"
+        }
+      },
+      "required": ["data"]
+    }
+  },
+  "firestore": {
+    "/portal_data/config": {
+      "schema": "DashboardConfig",
+      "description": "Active layout configurations master link"
+    },
+    "/portal_data/access": {
+      "schema": "AccessControl",
+      "description": "Dynamic locks trigger states"
+    },
+    "/portal_data/sheets": {
+      "schema": "SheetsCollection",
+      "description": "Main synchronizer spreadsheet outcome document"
+    },
+    "/portal_data/users": {
+      "schema": "UsersCollection",
+      "description": "Security admin users records"
+    },
+    "/portal_data/syncHistory": {
+      "schema": "object",
+      "description": "Activity logs synchronization container document"
+    }
+  }
+}
