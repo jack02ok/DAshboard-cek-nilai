@@ -347,228 +347,240 @@ export default function App() {
   // The workspace is public-first. Admin can authenticate using sidebar popup.
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 font-sans text-slate-900 overflow-hidden">
+    <div className="flex flex-col h-screen w-full bg-slate-50 font-sans text-slate-900 overflow-hidden">
       
-      {/* 2. Persistent Dark Left Sidebar representing the design template */}
-      <aside className="w-64 bg-slate-900 flex flex-col shrink-0">
-        <div className="p-5 flex items-center gap-3 border-b border-slate-800/60 bg-slate-950/20">
-          <img
-            src="https://github.com/jack02ok/osnsd/blob/main/logosd.png?raw=true"
-            alt="Logo SDN Neglasari 02"
-            className="w-10 h-10 object-contain bg-white rounded-xl p-0.5 shrink-0 shadow-md shadow-black/30"
-            referrerPolicy="no-referrer"
-          />
-          <div className="min-w-0">
-            <h1 className="text-white font-extrabold tracking-tight text-xs truncate" title={config.title}>{config.title}</h1>
-            <span className="text-[9px] text-emerald-400 font-black tracking-wide block uppercase">PORTAL SD NEGERI</span>
-          </div>
-        </div>
-
-        {/* Dynamic Navigators based on Sleek Interface */}
-        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`w-full p-3 rounded-xl flex items-center gap-3 text-xs font-semibold cursor-pointer transition-all ${
-              activeTab === 'dashboard'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10'
-                : 'text-slate-400 hover:bg-slate-800/70 hover:text-white'
-            }`}
-          >
-            <BarChart2 className="h-4 w-4 shrink-0" />
-            <span>Dashboard Statistik</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('search')}
-            className={`w-full p-3 rounded-xl flex items-center gap-3 text-xs font-semibold cursor-pointer transition-all ${
-              activeTab === 'search'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10'
-                : 'text-slate-400 hover:bg-slate-800/70 hover:text-white'
-            }`}
-          >
-            <Search className="h-4 w-4 shrink-0" />
-            <span>Pencarian Real-Time</span>
-          </button>
-
-          {/* Interactive sheet for Admin only, or locked fallback */}
-          <button
-            onClick={() => {
-              if (currentUser.role === 'Admin') {
-                setActiveTab('spreadsheet');
-              } else {
-                alert('Akses Terkunci! Hanya akun bertingkat "Admin" yang dapat menyunting dokumen spreadsheet.');
-              }
-            }}
-            className={`w-full p-3 rounded-xl flex items-center justify-between text-xs font-semibold cursor-pointer transition-all ${
-              activeTab === 'spreadsheet'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10'
-                : 'text-slate-400 hover:bg-slate-800/70 hover:text-white'
-            } ${currentUser.role !== 'Admin' ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <div className="flex items-center gap-3">
-              <FileSpreadsheet className="h-4 w-4 shrink-0" />
-              <span>Interaksi 3 Sheet</span>
-            </div>
-            {currentUser.role !== 'Admin' && <Lock className="h-3.5 w-3.5 text-slate-500 shrink-0" />}
-          </button>
-
-          {/* Admin controller */}
-          <button
-            onClick={() => {
-              if (currentUser.role === 'Admin') {
-                setActiveTab('admin');
-              } else {
-                alert('Akses Terkunci! Hanya akun dengan hak "Admin" yang memiliki wewenang mengonfigurasi control panel!');
-              }
-            }}
-            className={`w-full p-3 rounded-xl flex items-center justify-between text-xs font-semibold cursor-pointer transition-all ${
-              activeTab === 'admin'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10'
-                : 'text-slate-400 hover:bg-slate-800/70 hover:text-white'
-            } ${currentUser.role !== 'Admin' ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <div className="flex items-center gap-3">
-              <Shield className="h-4 w-4 shrink-0" />
-              <span>Konfigurasi & Akses</span>
-            </div>
-            {currentUser.role !== 'Admin' && <Lock className="h-3.5 w-3.5 text-slate-500 shrink-0" />}
-          </button>
-        </nav>
-
-        {/* Bottom Current Profile and Sign Out Button */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/40 space-y-3">
+      {/* 2. Sleek Top Navigation Bar (Horizontal Menu) */}
+      <header className="bg-slate-900 text-white shadow-md flex-none z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          
+          {/* Left brand segment */}
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-full ${currentUser.role === 'Admin' ? 'bg-indigo-600 border border-indigo-500' : 'bg-slate-700 border border-slate-600'} flex items-center justify-center font-bold text-white text-xs shrink-0`}>
-              {currentUser.id === 'usr-guest' ? '🎒' : (currentUser.role === 'Admin' ? 'AD' : 'PG')}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
-                {currentUser.id === 'usr-guest' ? 'Status Pengunjung' : `Hak Akses: ${currentUser.role}`}
-              </p>
-              <p className="text-white text-xs font-semibold truncate">
-                {currentUser.id === 'usr-guest' ? 'Siswa / Orang Tua 👦' : currentUser.fullName}
-              </p>
+            <img
+              src="https://github.com/jack02ok/osnsd/blob/main/logosd.png?raw=true"
+              alt="Logo SDN Neglasari 02"
+              className="w-10 h-10 object-contain bg-white rounded-xl p-0.5 shrink-0 shadow-md shadow-black/30"
+              referrerPolicy="no-referrer"
+            />
+            <div className="min-w-0">
+              <h1 className="text-white font-extrabold tracking-tight text-xs sm:text-sm truncate" title={config.title}>{config.title}</h1>
+              <span className="text-[9px] text-emerald-400 font-black tracking-wide block uppercase leading-none mt-0.5">PORTAL SD NEGERI</span>
             </div>
           </div>
 
-          {currentUser.id === 'usr-guest' ? (
+          {/* Middle Navigators (Horizontal List) */}
+          <nav className="hidden md:flex items-center space-x-2">
             <button
-              onClick={() => setShowLoginModal(true)}
-              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer shadow-sm shadow-indigo-650/40"
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold cursor-pointer transition-all ${
+                activeTab === 'dashboard'
+                  ? 'bg-indigo-650 text-white shadow-sm shadow-indigo-600/10'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
             >
-              <LogIn className="h-3.5 w-3.5" />
-              <span>Masuk Akun Admin 🔐</span>
+              <BarChart2 className="h-4 w-4 shrink-0" />
+              <span>Dashboard Statistik</span>
             </button>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="w-full py-2 bg-slate-800 hover:bg-rose-900 hover:text-white text-slate-300 font-bold rounded-xl text-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              <span>Keluar (Logout)</span>
-            </button>
-          )}
-        </div>
-      </aside>
 
-      {/* 3. Right Workplace Pane */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50">
-        
-        {/* Top Header representing active tab state, automatic sync countdown */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between shadow-xs shrink-0">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center gap-2">
-              <div className={`w-2.5 h-2.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500' : 'bg-rose-500'} animate-pulse`}></div>
-              <div className="hidden sm:block">
-                <h2 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Akses Publik</h2>
-                <p className={`text-[11px] font-bold mt-0.5 ${access.isDataVisible ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {access.isDataVisible ? 'Terbuka (Unlocked)' : 'Ditutup (Locked)'}
-                </p>
-              </div>
-            </div>
-
-            {/* Google Sheets / Spreadsheet Auto-Refresh Timer Box */}
-            <div className="hidden md:flex items-center space-x-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs">
-              <div className="flex items-center text-slate-500 font-medium">
-                <Database className="h-3.5 w-3.5 mr-1.5 text-indigo-500" />
-                <span>Auto-Refresh: <strong className="font-mono text-slate-700">{getAutoSyncText()}</strong></span>
-              </div>
-              <div className="h-3.5 w-[1px] bg-slate-200"></div>
-              <span className="text-[10px] text-slate-400 truncate">Last: {lastSyncTime}</span>
+            {/* Interactive sheet for Admin only */}
+            {currentUser.role === 'Admin' && (
               <button
-                onClick={() => handleTriggerSync(true)}
-                disabled={isSyncing}
-                className="p-1 hover:bg-slate-200 rounded-lg text-indigo-600 transition-colors"
-                title="Tarik data rujukan manual sekarang"
+                onClick={() => setActiveTab('spreadsheet')}
+                className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold cursor-pointer transition-all ${
+                  activeTab === 'spreadsheet'
+                    ? 'bg-indigo-655 text-white shadow-sm'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <FileSpreadsheet className="h-4 w-4 shrink-0" />
+                <span>Interaksi 3 Sheet</span>
               </button>
-            </div>
-          </div>
+            )}
 
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className="flex flex-col items-end">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Judul Portal</span>
-              <span className="text-xs font-bold text-indigo-600 truncate max-w-[200px]">{config.title}</span>
-            </div>
+            {/* Admin controller */}
+            {currentUser.role === 'Admin' && (
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-bold cursor-pointer transition-all ${
+                  activeTab === 'admin'
+                    ? 'bg-indigo-655 text-white shadow-sm'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                <Shield className="h-4 w-4 shrink-0" />
+                <span>Konfigurasi & Akses</span>
+              </button>
+            )}
+          </nav>
 
-            <div className="h-8 w-[1px] bg-slate-200"></div>
-
-            {/* Current user role badge */}
-            <div>
-              <span className={`px-2.5 py-1 rounded-full text-[9px] font-black tracking-widest uppercase ${
-                currentUser.role === 'Admin' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600'
-               }`}>
-                {currentUser.role} MODE
+          {/* Right Account & profile segment */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end leading-none">
+              <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider">
+                {currentUser.id === 'usr-guest' ? 'PENGUNJUNG' : currentUser.role}
+              </span>
+              <span className="text-white text-[11px] font-bold truncate max-w-[120px] mt-0.5">
+                {currentUser.id === 'usr-guest' ? 'Siswa / Ortu' : currentUser.fullName}
               </span>
             </div>
-          </div>
-        </header>
 
+            <div className={`w-8 h-8 rounded-full ${currentUser.role === 'Admin' ? 'bg-indigo-600 border border-indigo-500' : 'bg-slate-700 border border-slate-600'} flex items-center justify-center font-bold text-white text-[10px] shrink-0`}>
+              {currentUser.id === 'usr-guest' ? '🎒' : 'AD'}
+            </div>
+
+            {currentUser.id === 'usr-guest' ? (
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-[10px] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>Masuk Admin</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="py-1.5 px-3 bg-slate-800 hover:bg-rose-900 text-slate-300 hover:text-white font-black rounded-xl text-[10px] transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span>Keluar</span>
+              </button>
+            )}
+          </div>
+
+        </div>
+
+        {/* Mobile Nav Bar */}
+        <div className="md:hidden flex items-center justify-center border-t border-slate-800 px-2 py-1.5 space-x-1 bg-slate-950/20">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`px-3 py-1 bg-transparent rounded-lg flex items-center gap-1 text-[10px] font-bold cursor-pointer transition-all ${
+              activeTab === 'dashboard'
+                ? 'text-white bg-indigo-600'
+                : 'text-slate-400 hover:bg-slate-800'
+            }`}
+          >
+            <BarChart2 className="h-3 w-3" />
+            <span>Dashboard</span>
+          </button>
+
+          {currentUser.role === 'Admin' && (
+            <>
+              <button
+                onClick={() => setActiveTab('spreadsheet')}
+                className={`px-3 py-1 bg-transparent rounded-lg flex items-center gap-1 text-[10px] font-bold cursor-pointer transition-all ${
+                  activeTab === 'spreadsheet'
+                    ? 'text-white bg-indigo-600'
+                    : 'text-slate-400 hover:bg-slate-805'
+                }`}
+              >
+                <FileSpreadsheet className="h-3 w-3" />
+                <span>3 Sheet</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`px-3 py-1 bg-transparent rounded-lg flex items-center gap-1 text-[10px] font-bold cursor-pointer transition-all ${
+                  activeTab === 'admin'
+                    ? 'text-white bg-indigo-600'
+                    : 'text-slate-400 hover:bg-slate-805'
+                }`}
+              >
+                <Shield className="h-3 w-3" />
+                <span>Konfigurasi</span>
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* 2.5 Sub-Header strip for system status */}
+      <div className="bg-slate-100 border-b border-slate-200 py-2 px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 shrink-0 select-none text-xs text-slate-600">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block w-2.5 h-2.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500 animate-ping' : 'bg-rose-500 animate-pulse'}`}></span>
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500' : 'bg-rose-500'} -ml-4`}></span>
+            <span className="font-semibold text-slate-500">Status Akses:</span>
+            <span className={`font-black ${access.isDataVisible ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {access.isDataVisible ? 'Terbuka Untuk Umum (Unlocked)' : 'Ditutup Sementara (Locked Admin)'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2.5">
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-[11px]">
+            <Database className="h-3 w-3 text-indigo-500" />
+            <span>Sync: <strong className="font-mono text-slate-850">{getAutoSyncText()}</strong></span>
+            <span className="text-[9px] text-slate-400">({lastSyncTime})</span>
+          </div>
+          <button
+            onClick={() => handleTriggerSync(true)}
+            disabled={isSyncing}
+            className="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-205 text-indigo-700 rounded-lg text-[10px] font-black tracking-tight shrink-0 flex items-center gap-1 cursor-pointer"
+            title="Sinkronisasi spreadsheet manual"
+          >
+            <RefreshCw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>Sync Now</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Right Workplace Pane */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-50">
+        
         {/* Outer scrolling container holding workspace */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
+        <div className="flex-1 p-4 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
           
           {/* Locked overlay for students if visibility is shutdown and current user is NOT admin (except for the playground dashboard/beranda) */}
           {!access.isDataVisible && currentUser.role !== 'Admin' && activeTab !== 'dashboard' ? (
-            <div id="countdown-blocked-screen" className="max-w-xl mx-auto bg-white rounded-3xl border border-red-100 shadow-xl p-8 text-center space-y-6 my-6 animate-fade-in">
-              <div className="w-16 h-16 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-sm">
-                <EyeOff className="h-8 w-8 animate-pulse" />
+            <div id="countdown-blocked-screen" className="max-w-3xl mx-auto bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden animate-fade-in my-6">
+              {/* Massive Running Text (Marquee) at the top of the locked screen! */}
+              <div className="bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 py-4 select-none overflow-hidden border-b border-amber-500/30">
+                <marquee className="text-base sm:text-lg font-black text-slate-950 uppercase tracking-widest block whitespace-nowrap leading-none" scrollamount="5">
+                  ✨ TETAP SEMANGAT KELAS 6! PERJALANAN INDAHMU BARU SAJA DIMULAI. JADIKAN MOMENTUM INI UNTUK TERUS BELAJAR, MEMPERBAIKI DIRI, DAN SIAP MENGHADAPI TANTANGAN HEBAT DI TINGKAT SEKOLAH LANJUTAN SELANJUTNYA! PRESTASI PENTING, JUJUR DAN AKHLAK MULIA ADALAH YANG UTAMA! KELAS 6 SDN NEGLASARI 02 - KALIAN PASTI BISA! ✨ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </marquee>
               </div>
 
-              <div className="space-y-2">
-                <h2 className="text-xl font-black text-slate-850">Akses Data Nilai Ujian Ditutup</h2>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                  Maaf, saat ini administrator sekolah sedang menutup portal publik data nilai untuk pengerjaan rekapitulasi data atau persiapan rapat pleno.
-                </p>
-              </div>
-
-              {/* Countdown layout if timer is actively running */}
-              {blockedCountdown !== null && blockedCountdown > 0 ? (
-                <div className="bg-slate-900 border border-slate-850 text-white p-5 rounded-2xl space-y-3 max-w-xs mx-auto shadow-lg">
-                  <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Perkiraan Waktu Pembukaan Portal</span>
-                  <div className="font-mono text-3xl font-black text-amber-500 tracking-wider">
-                    {formatCountdown(blockedCountdown)}
-                  </div>
-                  <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-350">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Countdown Timer Berjalan</span>
-                  </div>
+              <div className="p-8 sm:p-12 text-center space-y-8">
+                <div className="w-20 h-20 rounded-full bg-slate-900 border-2 border-amber-400/40 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-400/5">
+                  <EyeOff className="h-10 w-10 animate-pulse" />
                 </div>
-              ) : (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 max-w-sm mx-auto">
-                  🕒 Portal sedang terkunci <strong>Manual</strong>. Akses data akan segera dibuka kembali setelah keputusan rujukan dari sekolah diterbitkan.
-                </div>
-              )}
 
-              <div className="pt-4 border-t border-slate-100 space-y-2">
-                <p className="text-[10px] text-slate-400">Harap tanyakan sandi admin ke panitia ujian, atau klik keluar untuk login menggunakan sandi admin preset.</p>
-                <div className="flex justify-center space-x-2">
-                  <button
-                    onClick={handleLogout}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all"
-                  >
-                    Ganti Login Akun
-                  </button>
+                <div className="space-y-3">
+                  <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">STATUS PORTAL: SEDANG DITUTUP 🔒</h2>
+                  <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+                    Maaf, saat ini administrator sekolah sedang menutup portal publik data nilai untuk pengerjaan rekapitulasi data atau persiapan rapat pleno.
+                  </p>
+                </div>
+
+                {/* Countdown layout if timer is actively running */}
+                {blockedCountdown !== null && blockedCountdown > 0 ? (
+                  <div className="bg-slate-900/90 border border-slate-800/80 text-white p-6 rounded-2xl space-y-3 max-w-md mx-auto shadow-xl ring-1 ring-slate-800/50">
+                    <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">WAKTU MUNDUR PEMBUKAAN PORTAL</span>
+                    <div className="font-mono text-3xl sm:text-4xl font-extrabold text-amber-400 tracking-wider animate-pulse leading-none py-1">
+                      {formatCountdown(blockedCountdown)}
+                    </div>
+                    <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-400">
+                      <Clock className="w-3.5 h-3.5 text-amber-500 animate-spin" />
+                      <span>Situs Pengumuman Akan Terbuka Otomatis</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-800/85 text-xs text-slate-350 max-w-sm mx-auto font-medium">
+                    🕒 Akses data ditutup secara manual oleh Administrator. Silakan tunggu informasi pembukaan berikutnya dari pihak sekolah.
+                  </div>
+                )}
+
+                <div className="pt-6 border-t border-slate-900 space-y-4">
+                  <p className="text-[10px] sm:text-xs text-slate-550 leading-normal max-w-md mx-auto">
+                    Hubungi wali kelas masing-masing jika sandi admin diperlukan untuk rekonfigurasi. Kredensial masuk dibatasi aman.
+                  </p>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleLogout}
+                      className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-305 hover:text-white text-xs font-bold rounded-xl transition-all border border-slate-700/50 cursor-pointer"
+                    >
+                      Ganti Login Akun
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -577,7 +589,7 @@ export default function App() {
               
               {/* Warnings alert for Admin if the portal is currently blocked */}
               {!access.isDataVisible && (
-                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-800 rounded-2xl flex items-start space-x-3 text-xs shadow-2xs">
+                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-805 rounded-2xl flex items-start space-x-3 text-xs shadow-2xs">
                   <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0 animate-bounce" />
                   <div className="space-y-0.5 animate-pulse">
                     <h5 className="font-extrabold">Bypass Admin Aktif (Protected Shield)</h5>
@@ -600,17 +612,13 @@ export default function App() {
                 >
                   {activeTab === 'dashboard' && (
                     <Dashboard
-                      sheetsData={sheetsData}
-                      config={config}
-                      access={access}
-                      blockedCountdown={blockedCountdown}
-                      onSwitchTab={setActiveTab}
-                      syncHistory={syncHistory}
+                       sheetsData={sheetsData}
+                       config={config}
+                       access={access}
+                       blockedCountdown={blockedCountdown}
+                       onSwitchTab={setActiveTab as any}
+                       syncHistory={syncHistory}
                     />
-                  )}
-
-                  {activeTab === 'search' && (
-                    <StudentSearch sheetsData={sheetsData} config={config} />
                   )}
 
                   {activeTab === 'spreadsheet' && currentUser.role === 'Admin' && (
@@ -731,7 +739,7 @@ function LoginGate({ users, onLoginSuccess, themeStyles }: LoginProps) {
     if (matched) {
       onLoginSuccess(matched);
     } else {
-      setErrorMsg('Username atau Kata Sandi salah! Coba akun preset di bawah untuk akses instan.');
+      setErrorMsg('Username atau Kata Sandi salah!');
     }
   };
 
@@ -796,40 +804,6 @@ function LoginGate({ users, onLoginSuccess, themeStyles }: LoginProps) {
           Masuk ke Dashboard Portal
         </button>
       </form>
-
-      <div className="border-t border-slate-100 pt-5 space-y-3">
-        <div className="text-center">
-          <span className="bg-slate-50 border border-slate-200 px-3.5 py-1 rounded-full text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            UJI AKSES CEPAT (PRESET)
-          </span>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => loginWithPreset(users[0] || DEFAULT_USERS[0])}
-            className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition-all group cursor-pointer"
-          >
-            <div className="flex items-center space-x-1.5 mb-1">
-              <Shield className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">Admin</span>
-            </div>
-            <p className="text-[9px] text-slate-500 font-medium truncate">Budi Santoso</p>
-            <p className="text-[9px] text-slate-400 mt-1 font-mono">user: <strong className="text-slate-600">admin</strong></p>
-          </button>
-
-          <button
-            onClick={() => loginWithPreset(users[1] || DEFAULT_USERS[1])}
-            className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left transition-all group cursor-pointer"
-          >
-            <div className="flex items-center space-x-1.5 mb-1">
-              <Users className="h-3.5 w-3.5 text-indigo-500" />
-              <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">User Biasa</span>
-            </div>
-            <p className="text-[9px] text-slate-500 font-medium truncate">Aditya Pratama</p>
-            <p className="text-[9px] text-slate-400 mt-1 font-mono">user: <strong className="text-slate-600">siswa</strong></p>
-          </button>
-        </div>
-      </div>
 
       <div className="text-center pt-2">
         <p className="text-[9px] text-slate-400 leading-relaxed font-semibold">

@@ -16,7 +16,8 @@ import {
   ChevronUp,
   ChevronDown,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Star
 } from 'lucide-react';
 
 import {
@@ -1104,36 +1105,49 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
           {/* CHECK ACCESS TIMER: B1. Access is CLOSED/LOCKED (Display Countdown Card) */}
           {access?.isDataVisible === false ? (
-            <div id="countdown-card-homepage" className="bg-slate-900 border-4 border-amber-400 text-white rounded-3xl p-6 sm:p-10 space-y-6 text-center shadow-xl max-w-lg mx-auto relative overflow-hidden my-4">
-              <div className="absolute -top-5 -left-5 opacity-10 text-6xl select-none font-bold">⏰</div>
-              <div className="absolute -bottom-5 -right-5 opacity-10 text-6xl select-none font-bold">🗓️</div>
-              
-              <div className="mx-auto w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center border-2 border-amber-500 shadow-lg text-3xl select-none">
-                ⏰
+            <div id="countdown-card-homepage" className="bg-slate-950 border border-slate-800 text-white rounded-3xl overflow-hidden shadow-2xl max-w-3xl mx-auto my-6 animate-fade-in">
+              {/* Giant high-impact running text with bold motivation text */}
+              <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 py-4 select-none overflow-hidden border-b border-indigo-500/30">
+                <marquee className="text-lg sm:text-2xl font-black text-amber-300 uppercase tracking-widest block whitespace-nowrap leading-none" scrollamount="6">
+                  ✨ TETAP SEMANGAT KELAS 6! KELAS 6 BUKANLAH AKHIR, TETAPI AWAL DARI PERJALANAN PANJANG UNTUK MEMPERBAIKI DIRI, MERAIH MIMPI, DAN SIAP MENGHADAPI TANTANGAN HEBAT DI TINGKAT SEKOLAH LANJUTAN SELANJUTNYA! MARI TERUS BELAJAR, PERBAIKI DIRI DAN JADILAH GENERASI PENERUS BANGSA YANG BERAKHLAK MULIA! SDN NEGLASARI 02 BISA! ✨ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </marquee>
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-lg font-black tracking-tight text-white leading-tight">Situs Sedang Bersiap! ⏳</h3>
-                <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-                  Sabar ya anak pintar! Portal pengumuman hasil Ujian Sekolah sedang dipersiapkan dan akan dibuka otomatis dalam hitungan mundur di bawah ini. Biasakan membaca dan tetap semangat ya!
-                </p>
-              </div>
+              <div className="p-8 sm:p-12 space-y-8 text-center relative">
+                <div className="absolute top-5 left-5 opacity-5 text-7xl select-none font-bold">🎒</div>
+                <div className="absolute bottom-5 right-5 opacity-5 text-7xl select-none font-bold">🏫</div>
+                
+                <div className="mx-auto w-20 h-20 rounded-full bg-slate-900 flex items-center justify-center border-2 border-amber-400 shadow-xl shadow-amber-400/5 text-4xl select-none">
+                  ⏳
+                </div>
 
-              {blockedCountdown !== null && blockedCountdown > 0 ? (
-                <div className="bg-slate-950/60 inline-block px-8 py-4 rounded-2xl border border-slate-800">
-                  <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase block mb-1">Pintu Portal Akan Dibuka Dalam:</span>
-                  <div className="font-mono text-3xl sm:text-4xl font-black text-amber-400 tracking-wider animate-pulse">
-                    {formatCountdown(blockedCountdown)}
+                <div className="space-y-3">
+                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">PENGUMUMAN HASIL UJIAN SEKOLAH SEDANG BERSIAP!</h3>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xl mx-auto">
+                    Sabar ya anak pintar! Portal pengumuman hasil Ujian Sekolah SD Negeri Neglasari 02 sedang dipersiapkan dan akan dibuka otomatis sesuai waktu hitung mundur di bawah ini. Biasakan berdoa dan tetap optimis!
+                  </p>
+                </div>
+
+                {blockedCountdown !== null && blockedCountdown > 0 ? (
+                  <div className="bg-slate-900/90 inline-block px-10 py-6 rounded-3xl border border-slate-800 shadow-lg ring-1 ring-slate-800/50">
+                    <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase block mb-1">COUNTDOWN KEMUNDURAN PEMBUKAAN:</span>
+                    <div className="font-mono text-4xl sm:text-5xl font-black text-amber-450 tracking-wider animate-pulse leading-none py-1">
+                      {formatCountdown(blockedCountdown)}
+                    </div>
+                    <div className="flex items-center justify-center space-x-1.5 text-[11px] text-slate-400 mt-2">
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                      <span>Situs Pengumuman Akan Terbuka Otomatis</span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-slate-950/55 rounded-2xl border border-slate-850 text-xs text-slate-350 max-w-sm mx-auto">
-                  🔒 Portal sedang terkunci <strong>Manual</strong>. Akses pengumuman nilai akan segera dibuka oleh Bapak/Ibu Guru setelah keputusan rapat sekolah selesai diterbitkan.
-                </div>
-              )}
+                ) : (
+                  <div className="p-4 bg-slate-900/60 rounded-xl border border-slate-805 text-xs text-slate-350 max-w-sm mx-auto font-medium">
+                    🔒 Portal sedang terkunci <strong>Manual</strong>. Akses pengumuman nilai akan segera dibuka oleh panitia sekolah setelah keputusan rapat akhir diterbitkan.
+                  </div>
+                )}
 
-              <div className="pt-3 border-t border-slate-800/80 text-[10px] text-slate-500 font-medium">
-                Info: Hubungi wali kelas masing-masing jika sandi admin diperlukan untuk rekonfigurasi.
+                <div className="pt-6 border-t border-slate-900 text-xs text-slate-500 font-medium max-w-sm mx-auto leading-normal">
+                  Info resmi Panitia Ujian SDN Neglasari 02. Harap tanyakan sandi admin ke wali kelas jika rekonfigurasi diperlukan.
+                </div>
               </div>
             </div>
           ) : (
@@ -1330,21 +1344,122 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
                 <div id="radar-chart-container" className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
                   <div>
-                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest">Kapasitas Sektoral Bidang</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Peta visual penguasaan rumpun pelajaran</p>
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
+                      <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                      <span>Prestasi Rumpun Pelajaran 🎒</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Penguasaan kelompok materi seluruh kelas 6</p>
                   </div>
 
-                  <div className="h-60 w-full flex items-center justify-center text-xs">
-                    <Radar data={radarChartData} options={radarChartOptions} />
+                  <div className="space-y-3.5 py-1 flex-1 flex flex-col justify-center">
+                    {categoryAveragesData.map((item) => {
+                      const score = item.Nilai;
+                      // Determine kid-friendly badges, stars & messages
+                      let icon = '🧪';
+                      let fullname = 'Sains & Eksak';
+                      let desc = 'Sains, Matematika & Logika';
+                      let badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                      let barColor = 'bg-emerald-500';
+                      let stars = '⭐⭐⭐⭐⭐';
+                      let badgeText = 'Sangat Hebat! 🏆';
+
+                      if (item.subject === 'Sains') {
+                        icon = '🧪';
+                        fullname = 'Sains & Eksak';
+                        desc = 'Sains, IPA & Matematika';
+                        if (score >= 85) {
+                          badgeText = 'Sangat Hebat! 🏆';
+                          badgeColor = 'bg-emerald-55 text-emerald-700 border-emerald-100';
+                          barColor = 'bg-emerald-500';
+                          stars = '⭐⭐⭐⭐⭐';
+                        } else if (score >= config.kkm) {
+                          badgeText = 'Tuntas Bagus! 👍';
+                          badgeColor = 'bg-teal-50 text-teal-700 border-teal-100';
+                          barColor = 'bg-teal-500';
+                          stars = '⭐⭐⭐⭐';
+                        } else {
+                          badgeText = 'Harus Belajar! 📚';
+                          badgeColor = 'bg-rose-50 text-rose-700 border-rose-100';
+                          barColor = 'bg-rose-500';
+                          stars = '⭐⭐⭐';
+                        }
+                      } else if (item.subject === 'Sosial') {
+                        icon = '🌍';
+                        fullname = 'Sosial & Hum';
+                        desc = 'IPS, PPKn & Karakter';
+                        if (score >= 85) {
+                          badgeText = 'Sangat Berbakti! 🌟';
+                          badgeColor = 'bg-amber-50 text-amber-705 border-amber-100';
+                          barColor = 'bg-amber-500';
+                          stars = '⭐⭐⭐⭐⭐';
+                        } else if (score >= config.kkm) {
+                          badgeText = 'Sikap Hebat! 😊';
+                          badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-100';
+                          barColor = 'bg-indigo-550';
+                          stars = '⭐⭐⭐⭐';
+                        } else {
+                          badgeText = 'Ayo Tingkatkan! 💪';
+                          badgeColor = 'bg-rose-50 text-rose-700 border-rose-100';
+                          barColor = 'bg-rose-500';
+                          stars = '⭐⭐⭐';
+                        }
+                      } else if (item.subject === 'Bahasa') {
+                        icon = '🎨';
+                        fullname = 'Bahasa & Seni';
+                        desc = 'B. Indonesia, Inggris & Karya';
+                        if (score >= 85) {
+                          badgeText = 'Sangat Kreatif! 🎨';
+                          badgeColor = 'bg-purple-50 text-purple-705 border-purple-100';
+                          barColor = 'bg-purple-500';
+                          stars = '⭐⭐⭐⭐⭐';
+                        } else if (score >= config.kkm) {
+                          badgeText = 'Komunikasi Lancar! 📝';
+                          badgeColor = 'bg-pink-50 text-pink-700 border-pink-100';
+                          barColor = 'bg-pink-500';
+                          stars = '⭐⭐⭐⭐';
+                        } else {
+                          badgeText = 'Ayo Berlatih! 🗣️';
+                          badgeColor = 'bg-rose-50 text-rose-700 border-rose-100';
+                          barColor = 'bg-rose-500';
+                          stars = '⭐⭐⭐';
+                        }
+                      }
+
+                      return (
+                        <div key={item.subject} className="p-3 bg-slate-50/70 rounded-2xl border border-slate-150 space-y-2 hover:bg-slate-50 transition-all">
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xl p-1 bg-white rounded-lg shadow-2xs border border-slate-100 select-none">{icon}</span>
+                              <div>
+                                <h5 className="text-[11px] font-bold text-slate-800 leading-tight">{fullname}</h5>
+                                <p className="text-[9px] text-slate-400 font-bold">{desc}</p>
+                              </div>
+                            </div>
+                            <span className="font-mono font-black text-slate-800 text-xs bg-white border border-slate-150 px-2 py-0.5 rounded-lg shadow-3xs">
+                              {score}
+                            </span>
+                          </div>
+
+                          {/* Beautiful Progress Bar */}
+                          <div className="space-y-1">
+                            <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-1000 ${barColor}`}
+                                style={{ width: `${score}%` }}
+                              />
+                            </div>
+                            <div className="flex justify-between items-center text-[9px]">
+                              <span className="text-slate-400 font-bold tracking-tight">{stars}</span>
+                              <span className={`px-1.5 py-0.2 rounded border font-black ${badgeColor}`}>{badgeText}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1 divide-x divide-slate-100 text-center border-t border-slate-100 pt-3">
-                    {categoryAveragesData.map((item) => (
-                      <div key={item.subject} className="px-1">
-                        <p className="text-[10px] text-slate-400 font-bold truncate uppercase tracking-widest">{item.subject}</p>
-                        <p className={`text-xs font-black shrink-0 ${styles.text}`}>{item.Nilai}</p>
-                      </div>
-                    ))}
+                  <div className="text-[9px]/relaxed font-semibold text-slate-400 text-center pt-2 border-t border-slate-100">
+                    Nilai dihitung berdasarkan rata-rata gabungan seluruh murid SDN Neglasari 02
                   </div>
                 </div>
               </div>
