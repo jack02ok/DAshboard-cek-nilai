@@ -697,23 +697,6 @@ export default function App() {
               </span>
             </div>
           </div>
-
-          <div className="flex items-center space-x-2.5">
-            <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-[11px]">
-              <Database className="h-3 w-3 text-indigo-500" />
-              <span>Sync: <strong className="font-mono text-slate-850">{getAutoSyncText()}</strong></span>
-              <span className="text-[9px] text-slate-400">({lastSyncTime})</span>
-            </div>
-            <button
-              onClick={() => handleTriggerSync(true)}
-              disabled={isSyncing}
-              className="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-205 text-indigo-700 rounded-lg text-[10px] font-black tracking-tight shrink-0 flex items-center gap-1 cursor-pointer"
-              title="Sinkronisasi spreadsheet manual"
-            >
-              <RefreshCw className={`h-3 w-3 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span>Sync Now</span>
-            </button>
-          </div>
         </div>
       )}
 
@@ -840,11 +823,6 @@ export default function App() {
                       onUpdateUsers={handleUpdateUsers}
                       onTriggerDefaultReset={handleDefaultReset}
                       onTriggerClearData={handleClearData}
-                      syncUrl={syncUrl}
-                      onUpdateSyncUrl={handleUpdateSyncUrl}
-                      onTriggerSync={() => handleTriggerSync(true)}
-                      syncLogs={syncLogs}
-                      nextSyncSeconds={nextSyncSeconds}
                     />
                   )}
                 </motion.div>

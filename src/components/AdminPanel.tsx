@@ -31,11 +31,6 @@ interface AdminPanelProps {
   onUpdateUsers: (updated: UserAccount[]) => void;
   onTriggerDefaultReset: () => void;
   onTriggerClearData: () => void;
-  syncUrl: string;
-  onUpdateSyncUrl: (val: string) => void;
-  onTriggerSync: () => void;
-  syncLogs: CleanseLog[];
-  nextSyncSeconds: number;
 }
 
 export default function AdminPanel({
@@ -46,12 +41,7 @@ export default function AdminPanel({
   users,
   onUpdateUsers,
   onTriggerDefaultReset,
-  onTriggerClearData,
-  syncUrl,
-  onUpdateSyncUrl,
-  onTriggerSync,
-  syncLogs,
-  nextSyncSeconds
+  onTriggerClearData
 }: AdminPanelProps) {
   // Access and countdown settings
   const [minutesInput, setMinutesInput] = useState('5');
@@ -63,9 +53,6 @@ export default function AdminPanel({
   const [newFullName, setNewFullName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'Admin' | 'Pengguna'>('Pengguna');
-
-  // Input editing for Google Sheets link url
-  const [localSyncUrl, setLocalSyncUrl] = useState(syncUrl);
 
   const styles = THEME_STYLES[config.themeColor] || THEME_STYLES.indigo;
 
@@ -176,28 +163,10 @@ export default function AdminPanel({
     }
   };
 
-  // Save the synchronized Google Sheets spreadsheet API URL
-  const handleSaveSyncUrl = () => {
-    if (!localSyncUrl.trim()) {
-      alert('URL Endpoint tidak boleh kosong.');
-      return;
-    }
-    onUpdateSyncUrl(localSyncUrl.trim());
-    alert('URL Google Sheets API / CSV rujukan berhasil disimpan! Menjalankan pembersihan ulang data otomatis...');
-    onTriggerSync();
-  };
-
-  // Helper formats
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const formatAutoSyncTimer = () => {
-    const min = Math.floor(nextSyncSeconds / 60);
-    const sec = nextSyncSeconds % 60;
-    return `${min} menit ${sec} detik`;
   };
 
   return (
@@ -565,76 +534,6 @@ export default function AdminPanel({
                 {config.showDetailsToStudent ? '● Aktif' : '○ Disembunyikan'}
               </span>
             </label>
-          </div>
-
-        </div>
-      </div>
-
-      {/* 3. Real-Time Google Sheets / Excel API Connector with Cleansing & Standardization Logs */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-xs" id="admin-google-sheet-connector">
-        <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
-          <Database className={`h-5 w-5 ${styles.text}`} />
-          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Koreksi Data / Google Sheets & Excel API Integrator</h4>
-        </div>
-        <p className="text-xs text-slate-450 leading-relaxed">
-          Hubungkan VizSheet Pro dengan Google Sheets (Publikasikan ke CSV) atau endpoint Excel API eksternal. Sistem akan otomatis melakukan <strong>Pembersihan & Standardisasi Nilai</strong> setiap jam sekali untuk menjamin integritas statistik visual.
-        </p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-3">
-            <div className="space-y-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase">URL Endpoint Lembar Rujukan (Google Sheet / Excel API)</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={localSyncUrl}
-                  onChange={(e) => setLocalSyncUrl(e.target.value)}
-                  placeholder="Masukkan link Google Sheets CSV rujukan..."
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono focus:ring-1 focus:ring-indigo-500"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveSyncUrl}
-                  className={`px-4 py-2 ${styles.primary} ${styles.primaryHover} text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer`}
-                >
-                  Simpan & Tarik
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60 flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-medium">Jadwal penyegaran berkala:</span>
-              <span className="text-indigo-600 font-bold flex items-center space-x-1">
-                <RefreshCw className="h-3.5 w-3.5 mr-1 text-indigo-500 animate-spin" />
-                <span>Setiap 1 Jam (Berikutnya: <strong>{formatAutoSyncTimer()}</strong>)</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Cleansed Standard Logs display list */}
-          <div className="flex flex-col h-full space-y-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Aktivitas & Log Standardisasi Data</span>
-            <div className="flex-1 min-h-[140px] max-h-[140px] overflow-y-auto bg-slate-950 p-3 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-300 space-y-2 divide-y divide-slate-900">
-              {syncLogs.length === 0 ? (
-                <p className="text-slate-500 text-center py-8">Belum ada proses standardisasi yang berlangsung.</p>
-              ) : (
-                syncLogs.map((log, idx) => (
-                  <div key={idx} className="pt-1.5 flex flex-col space-y-0.5">
-                    <div className="flex justify-between text-[9px]">
-                      <span className="text-slate-500">{log.timestamp}</span>
-                      <span className={`font-bold uppercase tracking-wider ${
-                        log.type === 'success' ? 'text-emerald-450' :
-                        log.type === 'warning' ? 'text-amber-500' :
-                        log.type === 'error' ? 'text-rose-550' : 'text-sky-450'
-                      }`}>
-                        [{log.type}]
-                      </span>
-                    </div>
-                    <p className="text-slate-300 font-medium">{log.message}</p>
-                  </div>
-                ))
-              )}
-            </div>
           </div>
         </div>
       </div>
