@@ -612,18 +612,48 @@ export default function App() {
 
       {/* 2.5 Sub-Header strip for system status */}
       {!( !access.isDataVisible && currentUser.role !== 'Admin' ) && (
-        <div className="bg-slate-100 border-b border-slate-200 py-2 px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 shrink-0 select-none text-xs text-slate-600">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center gap-1.5">
-              <span className={`inline-block w-2.5 h-2.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500 animate-ping' : 'bg-rose-500 animate-pulse'}`}></span>
-              <span className={`inline-block w-1.5 h-1.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500' : 'bg-rose-500'} -ml-4`}></span>
-              <span className="font-semibold text-slate-500">Status Akses:</span>
-              <span className={`font-black ${access.isDataVisible ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {access.isDataVisible ? 'Terbuka Untuk Umum (Unlocked)' : 'Ditutup Sementara (Locked Admin)'}
-              </span>
+        <>
+          <div className="bg-slate-100 border-b border-slate-200 py-2 px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2 shrink-0 select-none text-xs text-slate-600">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-1.5">
+                <span className={`inline-block w-2.5 h-2.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500 animate-ping' : 'bg-rose-500 animate-pulse'}`}></span>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${access.isDataVisible ? 'bg-emerald-500' : 'bg-rose-500'} -ml-4`}></span>
+                <span className="font-semibold text-slate-500">Status Akses:</span>
+                <span className={`font-black ${access.isDataVisible ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {access.isDataVisible ? 'Terbuka Untuk Umum (Unlocked)' : 'Ditutup Sementara (Locked Admin)'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* Active Website Closure Countdown warning banner */}
+          {access.isDataVisible && access.timerAction === 'close' && blockedCountdown !== null && blockedCountdown > 0 && (
+            <div id="website-closure-countdown-banner" className="bg-rose-600 border-b border-rose-700 text-white py-2.5 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0 select-none z-20 shadow-sm">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="bg-rose-700 p-1.5 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                  <AlertTriangle className="h-4.5 w-4.5 text-amber-300 animate-pulse" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black tracking-wider uppercase text-white flex items-center gap-1.5 flex-wrap">
+                    <span>Pemberitahuan: Sistem Akan Ditutup Sementara</span>
+                    <span className="bg-rose-850 text-rose-100 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase animate-pulse border border-rose-750">Penting</span>
+                  </h4>
+                  <p className="text-[10px] text-rose-100/95 mt-0.5 leading-relaxed">
+                    Situs akan segera ditutup secara otomatis oleh panitia sekolah untuk keperluan sinkronisasi data penilaian final. Harap selesaikan pekerjaan atau pencarian Anda.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 bg-rose-950/40 px-3.5 py-1.5 rounded-2xl border border-rose-500/20 shrink-0 self-start sm:self-center">
+                <div className="relative">
+                  <Clock className="w-4 h-4 text-amber-300 animate-spin" />
+                  <span className="absolute inset-0 rounded-full bg-amber-400 animate-ping opacity-25"></span>
+                </div>
+                <span className="text-[10px] font-mono font-black text-rose-100 tracking-wider">TUTUP DALAM:</span>
+                <span className="font-mono text-base font-black text-amber-300 tracking-widest">{formatCountdown(blockedCountdown)}</span>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* 3. Main Content Area */}

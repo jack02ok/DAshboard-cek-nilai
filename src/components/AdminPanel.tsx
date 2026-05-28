@@ -285,6 +285,18 @@ export default function AdminPanel({
                   </div>
                 </div>
 
+                {timerActionType === 'close' && (
+                  <div className="bg-rose-50 border border-rose-100 rounded-lg p-2.5 text-[10.5px] text-rose-800 leading-relaxed font-sans">
+                    💡 <strong>Sistem Peringatan Aktif:</strong> Saat hitung mundur penutupan dimulai, spanduk peringatan merah berkedip yang mendesak akan ditampilkan di bagian atas situs agar seluruh siswa & orang tua menyadari bahwa situs akan segera ditutup.
+                  </div>
+                )}
+
+                {timerActionType === 'open' && (
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 text-[10.5px] text-emerald-800 leading-relaxed font-sans">
+                    💡 <strong>Sistem Hitung Mundur Rilis:</strong> Menampilkan hitung mundur raksasa di layar terkunci siswa untuk pembukaan resmi portal hasil nilai.
+                  </div>
+                )}
+
                 <button
                   onClick={startCountdown}
                   className={`w-full py-1.5 ${styles.primary} ${styles.primaryHover} text-white font-bold rounded-lg text-xs flex items-center justify-center space-x-1.5 transition-all cursor-pointer`}
