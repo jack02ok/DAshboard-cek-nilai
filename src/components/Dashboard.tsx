@@ -87,37 +87,75 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
       setExpandedStudentDetails(true);
     }
     
-    setTimeout(() => {
+    // Function to run html2canvas once we confirmed the target element is fully mounted and visible
+    const triggerCapture = (retryCount = 0) => {
       const element = document.getElementById('student-report-card-downloadable');
-      if (element) {
-        html2canvas(element, {
-          useCORS: true,
-          scale: 2,
-          backgroundColor: '#ffffff',
-          logging: false
-        }).then((canvas) => {
-          const imgData = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          const cleanName = selectedStudent ? selectedStudent.name.replace(/\s+/g, '_') : 'Siswa';
-          link.download = `Hasil_TKA_${cleanName}.png`;
-          link.href = imgData;
-          link.click();
-          setIsDownloading(false);
-          if (!wasExpanded) {
-            setExpandedStudentDetails(false);
-          }
-        }).catch((err) => {
-          console.error('Error exporting image:', err);
-          alert('Gagal mengunduh gambar hasil TKA. Silakan coba lagi ya!');
-          setIsDownloading(false);
-          if (!wasExpanded) {
-            setExpandedStudentDetails(false);
-          }
-        });
-      } else {
-        alert('Berkas elemen tidak ditemukan.');
+      
+      // 1. DOM Mounting & Existence Check
+      if (!element) {
+        if (retryCount < 5) {
+          console.warn(`Element #student-report-card-downloadable not found in DOM yet. Retrying in 100ms... (Attempt ${retryCount + 1}/5)`);
+          setTimeout(() => triggerCapture(retryCount + 1), 100);
+          return;
+        }
+        alert('Gagal mendeteksi kartu rapor siswa di halaman. Pastikan rincian siswa sedang dibuka.');
         setIsDownloading(false);
+        return;
       }
+
+      // 2. Element Dimensions & Visibility Check
+      if (element.offsetWidth === 0 || element.offsetHeight === 0) {
+        if (retryCount < 5) {
+          console.warn(`Element #student-report-card-downloadable is in DOM but has 0 dimensions. Retrying in 100ms... (Attempt ${retryCount + 1}/5)`);
+          setTimeout(() => triggerCapture(retryCount + 1), 100);
+          return;
+        }
+      }
+
+      console.log('Target element verified and fully mounted. Executing html2canvas export...', {
+        id: element.id,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        className: element.className
+      });
+
+      html2canvas(element, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false
+      }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        const cleanName = selectedStudent ? selectedStudent.name.replace(/\s+/g, '_') : 'Siswa';
+        link.download = `Hasil_TKA_${cleanName}.png`;
+        link.href = imgData;
+        link.click();
+        setIsDownloading(false);
+        if (!wasExpanded) {
+          setExpandedStudentDetails(false);
+        }
+      }).catch((err) => {
+        console.error('Error exporting image:', err);
+        alert(
+          'Gagal mengunduh gambar hasil TKA secara otomatis.\n\n' +
+          'Penyebab Utama:\n' +
+          'Anda sedang mengakses situs ini dari panel Pratinjau (iFrame) AI Studio. Browser membatasi proses pengunduhan berkas lokal dari elemen sandboxed demi alasan keamanan.\n\n' +
+          'Solusi Mudah & Cepat:\n' +
+          '1. Klik tombol "Buka di Tab Baru" (ikon kotak dengan panah keluar di bagian kanan atas layar pratinjau ini).\n' +
+          '2. Setelah halaman terbuka di tab browser penuh baru, cari nama siswa kembali dan klik tombol unduh.\n' +
+          '3. Pengunduhan gambar akan langsung berjalan 100% lancar dan tersimpan ke perangkat Anda!'
+        );
+        setIsDownloading(false);
+        if (!wasExpanded) {
+          setExpandedStudentDetails(false);
+        }
+      });
+    };
+
+    // Give React some time to apply setExpandedStudentDetails(true) state update first
+    setTimeout(() => {
+      triggerCapture(0);
     }, 300);
   };
 
@@ -1029,10 +1067,18 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
             </div>
           </div>
 
+          {/* Help tip for downloads under iframe restriction */}
+          <div className="bg-amber-50 border border-amber-200/60 rounded-2xl p-3.5 text-[10.5px] text-amber-800 leading-relaxed font-sans mb-4 flex items-start gap-2.5 shadow-xs select-none">
+            <span className="text-base shrink-0">💡</span>
+            <div>
+              <strong>Petunjuk Mengunduh:</strong> Jika tombol "Unduh Gambar Hasil TKA" di atas tidak memberikan respons atau memunculkan pesan error, hal ini dikarenakan pembatasan keamanan browser pada panel Pratinjau (iFrame) AI Studio. Silakan klik tombol <strong>"Buka di Tab Baru"</strong> (ikon kotak-panah di sudut kanan paling atas pratinjau ini) agar browser dapat mengunduh berkas dengan izin penuh.
+            </div>
+          </div>
+
           {/* The Kid-Friendly Rapor Card */}
-          <div id="student-report-card-downloadable" className="border-2 border-slate-150 rounded-2xl overflow-hidden bg-white hover:shadow-md transition-shadow">
+          <div id="student-report-card-downloadable" className="border-2 border-slate-150 rounded-2xl overflow-visible bg-white hover:shadow-md transition-shadow">
             {/* Header / Hero block with avatar */}
-            <div className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 relative gap-4">
+            <div className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 relative gap-4 rounded-t-2xl">
               <div className="absolute top-1 right-2 opacity-10 text-4xl select-none font-extrabold text-indigo-305">SD</div>
               <div className="flex items-center space-x-4">
                 <div className="text-4xl bg-white p-3 text-center rounded-2xl border shadow-xs select-none shrink-0 border-slate-200">
@@ -1131,7 +1177,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
             )}
 
             {/* Accordion trigger details */}
-            <div className="border-t border-slate-100 px-5 py-3 bg-slate-50/50 flex justify-between items-center text-xs">
+            <div className={`border-t border-slate-100 px-5 py-3 bg-slate-50/50 flex justify-between items-center text-xs ${(!expandedStudentDetails || config.showDetailsToStudent === false) ? 'rounded-b-2xl' : ''}`}>
               {config.showDetailsToStudent !== false ? (
                 <button
                   onClick={() => setExpandedStudentDetails(!expandedStudentDetails)}
@@ -1153,7 +1199,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
             {/* Detailed Subject Grid */}
             {expandedStudentDetails && config.showDetailsToStudent !== false && (
-              <div className="border-t border-slate-100 p-5 bg-white space-y-4">
+              <div className="border-t border-slate-100 p-5 bg-white space-y-4 rounded-b-2xl">
                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-1.5">
                   <BookOpen className="h-4 w-4 text-indigo-500" />
                   <span>DAFTAR NILAI DETAIL MATA PELAJARAN</span>
