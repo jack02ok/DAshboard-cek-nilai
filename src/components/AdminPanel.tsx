@@ -421,7 +421,7 @@ export default function AdminPanel({
         </div>
         
         <p className="text-xs text-slate-550 leading-relaxed">
-          Sebagai administrator, Anda dapat membatasi atau menyembunyikan data nilai ujian mana saja yang dapat dilihat oleh siswa maupun orang tua di modul pencarian. Cocok untuk menyederhanakan tampilan hasil ujian agar ramah anak SD.
+          Sebagai administrator, Anda dapat membatasi atau menyembunyikan data nilai TKA (Tes Kemampuan Akademik) mana saja yang dapat dilihat oleh siswa maupun orang tua di modul pencarian. Cocok untuk menyederhanakan tampilan hasil TKA agar ramah anak SD.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
@@ -484,7 +484,7 @@ export default function AdminPanel({
                   />
                 </div>
                 <h5 className="text-xs font-bold text-slate-800 mt-2">Nilai Rata-rata</h5>
-                <p className="text-[10px] text-slate-500 font-medium leading-tight">Menampilkan angka rata-rata Ujian Sekolah gabungan pada dashboard depan siswa.</p>
+                <p className="text-[10px] text-slate-500 font-medium leading-tight">Menampilkan angka rata-rata TKA (Tes Kemampuan Akademik) gabungan pada dashboard depan siswa.</p>
               </div>
               <span className={`text-[10px] font-bold mt-4 block ${config.showAverageToStudent ? 'text-indigo-600' : 'text-slate-400'}`}>
                 {config.showAverageToStudent ? '● Aktif (Angka)' : '○ Disembunyikan'}
@@ -528,7 +528,7 @@ export default function AdminPanel({
                   />
                 </div>
                 <h5 className="text-xs font-bold text-slate-800 mt-2">Nilai Detail</h5>
-                <p className="text-[10px] text-slate-500 font-medium leading-tight">Hasil ujian sekolah lengkap sebaran tiap-tiap mata pelajaran dalam tabel accordion.</p>
+                <p className="text-[10px] text-slate-500 font-medium leading-tight">Hasil TKA (Tes Kemampuan Akademik) lengkap sebaran tiap-tiap mata pelajaran dalam tabel accordion.</p>
               </div>
               <span className={`text-[10px] font-bold mt-4 block ${config.showDetailsToStudent ? 'text-purple-600' : 'text-slate-400'}`}>
                 {config.showDetailsToStudent ? '● Aktif' : '○ Disembunyikan'}

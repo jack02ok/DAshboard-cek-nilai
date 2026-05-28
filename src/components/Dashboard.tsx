@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { SheetData, DashboardConfig, Student } from '../types';
 import { getSubjectCategory, THEME_STYLES } from '../data';
+import html2canvas from 'html2canvas';
 import {
   Award,
   GraduationCap,
@@ -17,7 +18,8 @@ import {
   ChevronDown,
   Sparkles,
   ArrowLeft,
-  Star
+  Star,
+  Download
 } from 'lucide-react';
 
 import {
@@ -75,6 +77,49 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
   const [selectedStudent, setSelectedStudent] = useState<(Student & { sheetName: string }) | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [expandedStudentDetails, setExpandedStudentDetails] = useState(true);
+
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadImage = () => {
+    setIsDownloading(true);
+    const wasExpanded = expandedStudentDetails;
+    if (!wasExpanded) {
+      setExpandedStudentDetails(true);
+    }
+    
+    setTimeout(() => {
+      const element = document.getElementById('student-report-card-downloadable');
+      if (element) {
+        html2canvas(element, {
+          useCORS: true,
+          scale: 2,
+          backgroundColor: '#ffffff',
+          logging: false
+        }).then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          const cleanName = selectedStudent ? selectedStudent.name.replace(/\s+/g, '_') : 'Siswa';
+          link.download = `Hasil_TKA_${cleanName}.png`;
+          link.href = imgData;
+          link.click();
+          setIsDownloading(false);
+          if (!wasExpanded) {
+            setExpandedStudentDetails(false);
+          }
+        }).catch((err) => {
+          console.error('Error exporting image:', err);
+          alert('Gagal mengunduh gambar hasil TKA. Silakan coba lagi ya!');
+          setIsDownloading(false);
+          if (!wasExpanded) {
+            setExpandedStudentDetails(false);
+          }
+        });
+      } else {
+        alert('Berkas elemen tidak ditemukan.');
+        setIsDownloading(false);
+      }
+    }, 300);
+  };
 
   // 1. Filter sheet data based on filters in real-time
   const filteredSheetsData = useMemo(() => {
@@ -848,9 +893,9 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
         <div className="absolute top-2 right-4 text-3xl select-none opacity-20">🎒</div>
         <div className="space-y-1">
           <h2 className="text-base font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <span>Ayo Lihat Nilai Hasil Ujian Sekolah Kamu! 🎒✨</span>
+            <span>Ayo Lihat Nilai TKA (Tes Kemampuan Akademik) Kamu! 🎒✨</span>
           </h2>
-          <p className="text-[11px] text-slate-500 font-medium">Ketik nama lengkapmu di kolom bawah ini kemudian pilih nama kamu untuk melihat nilai hasil Ujian Sekolah lengkap ya!</p>
+          <p className="text-[11px] text-slate-500 font-medium">Ketik nama lengkapmu di kolom bawah ini kemudian pilih nama kamu untuk melihat nilai hasil TKA (Tes Kemampuan Akademik) lengkap ya!</p>
         </div>
 
         <div className="relative">
@@ -911,7 +956,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                       </div>
                     </div>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 group-hover:bg-indigo-600 group-hover:text-white transition-all uppercase tracking-wider shrink-0">
-                      Ujian {stu.average}
+                      TKA: {stu.average}
                     </span>
                   </button>
                 );
@@ -944,24 +989,35 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">HASIL UJIAN SEKOLAH</span>
+                <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">TKA (TES KEMAMPUAN AKADEMIK)</span>
                 <h3 className="text-base font-black text-slate-800 mt-0.5">Rincian Siswa: {selectedStudent.name}</h3>
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                setSelectedStudent(null);
-                setSuggestionSearch('');
-              }}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm shadow-emerald-600/10 cursor-pointer"
-            >
-              <span>Tutup Hasil Ujian & Kembali ke Beranda 📊</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleDownloadImage}
+                disabled={isDownloading}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm shadow-indigo-600/10 cursor-pointer"
+              >
+                <Download className="h-4 w-4 shrink-0" />
+                <span>{isDownloading ? 'Sedang Mengunduh...' : 'Unduh Gambar Hasil TKA 📥'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedStudent(null);
+                  setSuggestionSearch('');
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 border border-slate-200 cursor-pointer"
+              >
+                <span>Tutup & Kembali 📊</span>
+              </button>
+            </div>
           </div>
 
           {/* The Kid-Friendly Rapor Card */}
-          <div className="border-2 border-slate-150 rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
+          <div id="student-report-card-downloadable" className="border-2 border-slate-150 rounded-2xl overflow-hidden bg-white hover:shadow-md transition-shadow">
             {/* Header / Hero block with avatar */}
             <div className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 relative gap-4">
               <div className="absolute top-1 right-2 opacity-10 text-4xl select-none font-extrabold text-indigo-305">SD</div>
@@ -1122,9 +1178,9 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                 </div>
 
                 <div className="space-y-3">
-                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">PENGUMUMAN HASIL UJIAN SEKOLAH SEDANG BERSIAP!</h3>
+                  <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white leading-tight">PENGUMUMAN TKA (TES KEMAMPUAN AKADEMIK) SEDANG BERSIAP!</h3>
                   <p className="text-xs sm:text-sm text-white/90 leading-relaxed max-w-xl mx-auto">
-                    Sabar ya anak pintar! Portal pengumuman hasil Ujian Sekolah SD Negeri Neglasari 02 sedang dipersiapkan dan akan dibuka otomatis sesuai waktu hitung mundur di bawah ini. Biasakan berdoa dan tetap optimis!
+                    Sabar ya anak pintar! Portal pengumuman TKA (Tes Kemampuan Akademik) SD Negeri Neglasari 02 sedang dipersiapkan dan akan dibuka otomatis sesuai waktu hitung mundur di bawah ini. Biasakan berdoa dan tetap optimis!
                   </p>
                 </div>
 
@@ -1146,154 +1202,15 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                 )}
 
                 <div className="pt-6 border-t border-slate-900 text-xs text-white/70 font-medium max-w-sm mx-auto leading-normal">
-                  Info resmi Panitia Ujian SDN Neglasari 02. Harap tanyakan sandi admin ke wali kelas jika rekonfigurasi diperlukan.
+                  Info resmi Panitia TKA SDN Neglasari 02. Harap tanyakan sandi admin ke wali kelas jika rekonfigurasi diperlukan.
                 </div>
               </div>
             </div>
           ) : (
-            /* CHECK ACCESS TIMER: B2. Access is OPEN/UNLOCKED (Display Lowest, Highest, Average per Subject Chart + general Stats) */
-            <div id="unlocked-stats-homepage" className="space-y-6">
-              
-              {/* 2. Visual Subject Overall Chart (Nilai Terendah, Tertinggi, Rata-rata per mata pelajaran) */}
-              <div id="subject-overall-chart-panel" className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                  <div>
-                    <h3 className="text-sm font-black text-slate-850 flex items-center gap-2">
-                      <span className="p-1 px-1.5 rounded-lg bg-emerald-50 text-emerald-600">📊</span>
-                      <span>Grafik Analisis Capaian Nilai per Mata Pelajaran</span>
-                    </h3>
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      Menampilkan hasil nilai <strong>Tertinggi 📈</strong>, <strong>Rata-rata 👦👧</strong>, dan <strong>Terendah 📉</strong> dari seluruh siswa di database sekolah untuk tiap mata pelajaran.
-                    </p>
-                  </div>
-                  <div className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black tracking-wider uppercase rounded-full">
-                    KKM Acuan: {config.kkm}
-                  </div>
-                </div>
-
-                <div className="h-80 w-full text-xs">
-                  <Chart type="bar" data={subjectOverallChartData} options={subjectOverallChartOptions as any} />
-                </div>
-              </div>
-
-              {/* 3. Panel Filter Interaktif for overall charts */}
-              <div id="dashboard-filter-bar" className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center space-x-2">
-                    <Filter className={`h-4.5 w-4.5 ${styles.text}`} />
-                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Penyaringan Dokumen Dinamis</h4>
-                  </div>
-                  {(studentSearch || categoryFilter !== 'Semua') && (
-                    <button
-                      onClick={() => {
-                        setStudentSearch('');
-                        setCategoryFilter('Semua');
-                      }}
-                      className="px-2.5 py-1 text-[10px] text-rose-600 bg-rose-50 hover:bg-rose-105 rounded-lg font-bold flex items-center space-x-1 transition-all cursor-pointer"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                      <span>Reset Filter</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Text search for student name */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Cari Nama Siswa (Filter Grafik Tambahan)</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="Cari nama siswa... (Grafik kelas & rumpun ikut memfilter)"
-                        value={studentSearch}
-                        onChange={(e) => setStudentSearch(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-hidden focus:ring-1 focus:ring-indigo-500 font-medium text-slate-850"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Subject category drop down selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Kategori Mata Pelajaran</label>
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-hidden focus:ring-1 focus:ring-indigo-500 font-semibold"
-                    >
-                      <option value="Semua">Semua Kategori Mata Pelajaran</option>
-                      <option value="Sains">Matematika & Sains (Fisika, Kimia, Biologi)</option>
-                      <option value="Sosial">Ilmu Pengetahuan Sosial (Ekonomi, Geografi, Sosiologi, Sejarah)</option>
-                      <option value="Bahasa">Bahasa & Seni Budaya (Bahasa Indo, Inggris, Seni Budaya)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Informative Filter Feedback */}
-                <div className="text-[10px] text-slate-400 font-medium flex items-center space-x-1">
-                  <span>Penyaringan:</span>
-                  <span className="text-slate-600 font-extrabold">{studentSearch ? `"${studentSearch}"` : "Semua Siswa"}</span>
-                  <span>rumpun</span>
-                  <span className="text-slate-600 font-extrabold">Kategori {categoryFilter}</span>
-                  {stats.totalStudents > 0 && (
-                    <span className="text-emerald-600 font-bold ml-1">(Terfilter {stats.totalStudents} siswa)</span>
-                  )}
-                </div>
-              </div>
-
-              {/* 4. Core Visual statistics cards row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div id="stat-card-avg" className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                  <div className={`p-3 rounded-lg ${styles.light} ${styles.text}`}>
-                    <GraduationCap className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400 font-semibold">Rerata Umum</p>
-                    <h3 className="text-2xl font-black text-slate-800">{stats.averageScore}</h3>
-                    <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wide">KKM target: {config.kkm}</p>
-                  </div>
-                </div>
-
-                <div id="stat-card-students" className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                  <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400 font-semibold">Total Siswa</p>
-                    <h3 className="text-2xl font-black text-slate-800">{stats.totalStudents}</h3>
-                    <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wide">Tersebar di 3 sheet kelas</p>
-                  </div>
-                </div>
-
-                <div id="stat-card-passed" className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                  <div className="p-3 rounded-lg bg-amber-50 text-amber-600">
-                    <TrendingUp className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400 font-semibold">% Ketuntasan KKM</p>
-                    <h3 className="text-2xl font-black text-slate-800">{stats.passingPercentage}%</h3>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full mt-1.5">
-                      <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${stats.passingPercentage}%` }}></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div id="stat-card-best" className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
-                  <div className="p-3 rounded-lg bg-purple-50 text-purple-600">
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-400 font-semibold">Siswa Terbaik</p>
-                    <h3 className="text-xs font-bold text-slate-850 truncate max-w-[130px]" title={stats.highestStudent ? stats.highestStudent.name : '-'}>
-                      {stats.highestStudent ? stats.highestStudent.name : '-'}
-                    </h3>
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      Rerata: {stats.highestStudent ? stats.highestStudent.score : '-'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
+            /* CHECK ACCESS TIMER: B2. Access is OPEN/UNLOCKED */
+            <div id="unlocked-stats-homepage" className="text-center py-10 bg-white border border-slate-250 rounded-3xl p-6 shadow-xs max-w-3xl mx-auto">
+              <span className="text-4xl animate-bounce inline-block select-none">🎒</span>
+              <p className="text-slate-600 text-xs font-bold mt-3">Silakan ketik dan pilih nama kamu pada kolom pencarian di atas untuk melihat rincian nilai ya!</p>
             </div>
           )}
 

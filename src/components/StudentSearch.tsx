@@ -310,8 +310,8 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                       </p>
                     </>
                   ) : (
-                    <div className="text-slate-400 text-[10px] italic font-semibold">
-                      Hasil Ujian
+                    <div className="text-slate-400 text-[10px] italic font-semibold font-sans">
+                      Hasil TKA
                     </div>
                   )}
 
@@ -389,7 +389,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                 <div className="border-t border-slate-100 p-4 bg-white/50 space-y-3">
                   <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center space-x-1.5">
                     <BookOpen className="h-3.5 w-3.5 text-indigo-500" />
-                    <span>📚 Hasil Ujian Sekolah Per Pelajaran</span>
+                    <span>📚 Hasil TKA (Tes Kemampuan Akademik) Per Pelajaran</span>
                   </h5>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {Object.entries(std.scores).map(([subject, val]) => {

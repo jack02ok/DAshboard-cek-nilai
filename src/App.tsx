@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
-import { SheetData, DashboardConfig, AccessControl, UserAccount, CleanseLog } from './types';
+import { SheetData, DashboardConfig, AccessControl, UserAccount } from './types';
 import { INITIAL_SHEETS_DATA, THEME_STYLES } from './data';
-import { fetchSpreadsheetDataFromUrl, sanitizeAndCleanSheetData } from './apiSync';
 import Dashboard from './components/Dashboard';
 import SpreadsheetView from './components/SpreadsheetView';
 import StudentSearch from './components/StudentSearch';
@@ -98,29 +97,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'search' | 'spreadsheet' | 'admin'>('dashboard');
   const [blockedCountdown, setBlockedCountdown] = useState<number | null>(null);
 
-  // 3. API & Hourly Sync States
-  const [syncUrl, setSyncUrl] = useState<string>(() => {
-    const saved = localStorage.getItem('spreadsheet_sync_url_v1');
-    if (!saved || saved.includes('2PACX-1vT32QZl-v0m-mG9Z01')) {
-      return 'https://docs.google.com/spreadsheets/d/15STZJkMcBKc6pdj2mr4J7G3OkQpKernKla8U5cD8McU/export?format=csv';
-    }
-    return saved;
-  });
-  
-  const [syncLogs, setSyncLogs] = useState<CleanseLog[]>(() => {
-    return [
-      {
-        timestamp: new Date().toLocaleTimeString(),
-        message: 'Konektivitas sistem aktif. Menunggu pemicu sinkronisasi atau penjadwal otomatis.',
-        type: 'info'
-      }
-    ];
-  });
-  
-  const [nextSyncSeconds, setNextSyncSeconds] = useState(3600); // 1 hour timer
-  const [lastSyncTime, setLastSyncTime] = useState<string>('Belum Tersinkronisasi');
-  const [isSyncing, setIsSyncing] = useState(false);
-
   interface SyncHistoryRecord {
     timestamp: string;
     classAverages: Record<string, number>;
@@ -165,22 +141,10 @@ export default function App() {
   const styles = THEME_STYLES[config.themeColor] || THEME_STYLES.indigo;
   const userRole = currentUser?.role === 'Admin' ? 'admin' : 'siswa';
 
-  // Helper helper to add a logs
-  const addLog = (message: string, type: 'info' | 'success' | 'warning' | 'error') => {
-    setSyncLogs(prev => [
-      {
-        timestamp: new Date().toLocaleTimeString(),
-        message,
-        type
-      },
-      ...prev.slice(0, 49) // clamp to 50 logs max
-    ]);
-  };
-
   // --- REAL-TIME PORTAL SYNCHRONIZATION WITH FIRESTORE ---
 
   useEffect(() => {
-    // 1. Config & Sync URL Real-time Sync
+    // 1. Config Real-time Sync
     const unsubConfig = onSnapshot(doc(db, 'portal_data', 'config'), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
@@ -196,9 +160,6 @@ export default function App() {
           showStarsToStudent: data.showStarsToStudent !== undefined ? data.showStarsToStudent : prev.showStarsToStudent,
           showQuotesToStudent: data.showQuotesToStudent !== undefined ? data.showQuotesToStudent : prev.showQuotesToStudent,
         }));
-        if (data.syncUrl) {
-          setSyncUrl(data.syncUrl);
-        }
       } else {
         // First-run bootstrap
         const initialConfig = {
@@ -210,8 +171,7 @@ export default function App() {
           showAverageToStudent: true,
           showRankToStudent: true,
           showStarsToStudent: true,
-          showQuotesToStudent: true,
-          syncUrl: 'https://docs.google.com/spreadsheets/d/15STZJkMcBKc6pdj2mr4J7G3OkQpKernKla8U5cD8McU/export?format=csv'
+          showQuotesToStudent: true
         };
         setDoc(doc(db, 'portal_data', 'config'), initialConfig).catch(console.error);
         localStorage.setItem('dashboard_config_v1', JSON.stringify(initialConfig));
@@ -317,8 +277,7 @@ export default function App() {
     localStorage.setItem('sheet_data_v1', JSON.stringify(sheetsData));
     localStorage.setItem('dashboard_config_v1', JSON.stringify(config));
     localStorage.setItem('portal_access_v1', JSON.stringify(access));
-    localStorage.setItem('spreadsheet_sync_url_v1', syncUrl);
-  }, [sheetsData, config, access, syncUrl]);
+  }, [sheetsData, config, access]);
 
   // Sync log of classroom averages to Firestore when recalculations happen
   useEffect(() => {
@@ -372,7 +331,7 @@ export default function App() {
   const handleUpdateConfig = async (newConfig: DashboardConfig) => {
     setConfig(newConfig);
     try {
-      await setDoc(doc(db, 'portal_data', 'config'), { ...newConfig, syncUrl });
+      await setDoc(doc(db, 'portal_data', 'config'), newConfig);
     } catch (err) {
       console.error(err);
     }
@@ -382,15 +341,6 @@ export default function App() {
     setAccess(newAccess);
     try {
       await setDoc(doc(db, 'portal_data', 'access'), newAccess);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleUpdateSyncUrl = async (newUrl: string) => {
-    setSyncUrl(newUrl);
-    try {
-      await setDoc(doc(db, 'portal_data', 'config'), { ...config, syncUrl: newUrl });
     } catch (err) {
       console.error(err);
     }
@@ -420,49 +370,11 @@ export default function App() {
         if (currentUser.role === 'Admin') {
           setDoc(doc(db, 'portal_data', 'access'), updatedAccess).catch(console.error);
         }
-        addLog(`Timer Habis: Status visibilitas diubah otomatis menjadi ${nextVisibility ? 'DIBUKA' : 'DITUTUP'}.`, 'info');
       }
     }, 1000);
 
     return () => clearInterval(interval);
   }, [access.timerEndTime, access.timerAction, currentUser.role]);
-
-  // Trigger hourly synchronization mechanism
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setNextSyncSeconds(prev => {
-        if (prev <= 1) {
-          handleTriggerSync(false);
-          return 3600;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [syncUrl]);
-
-  // Synchronize dynamic function to fetch and cleanse
-  const handleTriggerSync = async (isManual = true) => {
-    setIsSyncing(true);
-    addLog(isManual ? 'Menginisiasi sinkronisasi manual dari instansi spreadsheet...' : 'Memulai sinkronisasi otomatis per jam...', 'info');
-    
-    try {
-      const fetchedAndCleansed = await fetchSpreadsheetDataFromUrl(syncUrl, addLog);
-      if (fetchedAndCleansed && fetchedAndCleansed.length > 0) {
-        setSheetsData(fetchedAndCleansed);
-        await setDoc(doc(db, 'portal_data', 'sheets'), { data: fetchedAndCleansed });
-        setLastSyncTime(new Date().toLocaleTimeString());
-        addLog('Pembaruan basis data visualisasi berhasil disinkronkan & dibersihkan.', 'success');
-      } else {
-        throw new Error('Data hasil filter kosong.');
-      }
-    } catch (err: any) {
-      addLog(`Sinkronisasi tertunda: ${err.message}. Menggunakan dataset lokal yang ada.`, 'warning');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   // Trigger system data complete reset
   const handleDefaultReset = async () => {
@@ -491,13 +403,12 @@ export default function App() {
 
     try {
       await setDoc(doc(db, 'portal_data', 'sheets'), { data: defaultSheets });
-      await setDoc(doc(db, 'portal_data', 'config'), { ...defaultConfig, syncUrl: 'https://docs.google.com/spreadsheets/d/15STZJkMcBKc6pdj2mr4J7G3OkQpKernKla8U5cD8McU/export?format=csv' });
+      await setDoc(doc(db, 'portal_data', 'config'), defaultConfig);
       await setDoc(doc(db, 'portal_data', 'access'), defaultAccess);
     } catch (err) {
       console.error(err);
     }
 
-    addLog('Administrator melakukan reset basis data spreadsheet ke kondisi standard.', 'warning');
     alert('Database spreadsheet berhasil direset ke nilai standard/default!');
   };
 
@@ -509,7 +420,6 @@ export default function App() {
     } catch (err) {
       console.error(err);
     }
-    addLog('Administrator melakukan pengosongan total basis data spreadsheet.', 'warning');
     alert('Seluruh basis data kelas dan nilai siswa telah berhasil dikosongkan!');
   };
 
@@ -523,13 +433,6 @@ export default function App() {
     const mins = Math.floor((secs % 3600) / 60);
     const remainingSecs = secs % 60;
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
-  };
-
-  // Convert sync count down
-  const getAutoSyncText = () => {
-    const m = Math.floor(nextSyncSeconds / 60);
-    const s = nextSyncSeconds % 60;
-    return `${m}m ${s}s`;
   };
 
   // The workspace is public-first. Admin can authenticate using sidebar popup.
@@ -761,7 +664,7 @@ export default function App() {
           </div>
 
           <footer className="w-full text-center py-4 text-[10px] text-slate-500 border-t border-slate-900 bg-slate-950/40 flex-none">
-            SD Negeri Neglasari 02 Portal Hasil Ujian Sekolah &copy; 2026
+            SD Negeri Neglasari 02 Portal TKA (Tes Kemampuan Akademik) &copy; 2026
           </footer>
         </div>
       ) : (
@@ -834,7 +737,6 @@ export default function App() {
               <div className="flex flex-col sm:flex-row justify-between gap-2">
                 <p>© 2026 Admin Dashboard & 3 Spreadsheet Penilai {config.title}. Diolah secara transparan, akuntabel, & dinamis.</p>
                 <div className="flex justify-center space-x-3 shrink-0">
-                  <span>Auto-refreshed: <strong className="font-mono text-slate-500">Every 1 hour</strong></span>
                   <span>Verification: <strong className="text-emerald-600 font-bold">SECURE PIPELINE ALIGNED</strong></span>
                   <span>KKM: <strong className="font-mono text-slate-600">{config.kkm}</strong></span>
                 </div>
@@ -939,7 +841,7 @@ function LoginGate({ users, onLoginSuccess, themeStyles }: LoginProps) {
         />
         <div>
           <h2 className="text-base font-black tracking-tight text-slate-800 leading-tight text-center">SD Negeri Neglasari 02</h2>
-          <p className="text-[11px] text-slate-500 font-medium text-center">Sistem Hasil Ujian Sekolah & Publikasi Nilai</p>
+          <p className="text-[11px] text-slate-500 font-medium text-center">Sistem TKA (Tes Kemampuan Akademik) & Publikasi Nilai</p>
         </div>
       </div>
 
@@ -986,7 +888,7 @@ function LoginGate({ users, onLoginSuccess, themeStyles }: LoginProps) {
 
       <div className="text-center pt-2">
         <p className="text-[9px] text-slate-400 leading-relaxed font-semibold">
-          Standard keamanan terakreditasi • SD Negeri Neglasari 02 Portal Hasil Ujian Sekolah v2.6.2
+          Standard keamanan terakreditasi • SD Negeri Neglasari 02 Portal TKA (Tes Kemampuan Akademik) v2.6.2
         </p>
       </div>
     </div>
