@@ -72,8 +72,16 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
     });
 
     // Apply textual and selection filters
+    const trimmedQuery = searchTerm.trim().toLowerCase();
+    const keywords = trimmedQuery.split(/\s+/).filter(Boolean);
+
     return list.filter((std) => {
-      const matchName = std.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const studentNameLower = std.name.toLowerCase();
+      const studentIdLower = std.id.toLowerCase();
+      
+      const matchName = keywords.length === 0 || keywords.every(kw => 
+        studentNameLower.includes(kw) || studentIdLower.includes(kw)
+      );
       const matchLevel = selectedSheetId === 'all' || std.sheetId === selectedSheetId;
       const matchCategory = selectedCategory === 'all' || std.categoryStats.count > 0;
       const matchSubject = selectedSubject === 'all' || std.subjectScore !== null;
@@ -88,7 +96,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
         relevantAvg = std.categoryStats.average;
       }
       
-      const isPassed = relevantAvg >= config.kkm;
+      const isPassed = config.disableKkm ? true : relevantAvg >= config.kkm;
       const matchStatus = selectedStatus === 'all' || 
                          (selectedStatus === 'lulus' && isPassed) || 
                          (selectedStatus === 'remedial' && !isPassed);
@@ -203,7 +211,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
           const displayedAverage = selectedSubject !== 'all'
             ? (std.subjectScore !== null ? std.subjectScore : 0)
             : (selectedCategory === 'all' ? std.average : std.categoryStats.average);
-          const isPassed = displayedAverage >= config.kkm;
+          const isPassed = config.disableKkm ? true : displayedAverage >= config.kkm;
           const isExpanded = expandedStudentId === std.id;
 
           // Kid avatar
@@ -334,7 +342,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                 <div className="px-4 pb-3 pt-1">
                   <div className="flex justify-between text-[9px] font-mono font-bold text-slate-400 mb-1">
                     <span>Mulai Belajar (0)</span>
-                    <span>Point KKM ({config.kkm})</span>
+                    <span>{config.disableKkm ? 'Sistem KKM Nonaktif' : `Point KKM (${config.kkm})`}</span>
                     <span>Nilai Maksimal (100)</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
@@ -397,6 +405,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                       const category = getSubjectCategory(subject);
                       const isCatActive = selectedCategory === 'all' || category === selectedCategory;
                       const isSubjActive = selectedSubject === 'all' || subject === selectedSubject;
+                      const isScorePassed = config.disableKkm ? true : score >= config.kkm;
 
                       return (
                         <div
@@ -407,7 +416,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                                 ? 'bg-indigo-50 border-indigo-500 scale-102 ring-2 ring-indigo-500/10 shadow-xs opacity-100'
                                 : 'bg-slate-50/20 border-slate-200/40 opacity-40'
                               : isCatActive 
-                                ? score >= config.kkm 
+                                ? isScorePassed 
                                   ? 'bg-emerald-50/40 border-emerald-200 opacity-100' 
                                   : 'bg-rose-50/40 border-rose-200 opacity-100'
                                 : 'bg-slate-50/30 border-slate-200/50 opacity-40'
@@ -421,7 +430,7 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                             <p className="text-[8px] text-slate-400 capitalize bg-slate-100 px-1 py-0.2 rounded inline-block font-mono mt-0.5">{category}</p>
                           </div>
                           <span className={`font-mono font-black px-2 py-1 rounded-lg text-[12px] ${
-                            score >= config.kkm 
+                            isScorePassed 
                               ? isSubjActive && selectedSubject !== 'all' ? 'text-indigo-700 bg-indigo-150 font-bold' : 'text-emerald-700 bg-emerald-100/60' 
                               : 'text-rose-700 bg-rose-100/60'
                           }`}>

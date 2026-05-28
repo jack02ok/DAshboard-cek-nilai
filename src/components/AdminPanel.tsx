@@ -424,7 +424,7 @@ export default function AdminPanel({
           Sebagai administrator, Anda dapat membatasi atau menyembunyikan data nilai TKA (Tes Kemampuan Akademik) mana saja yang dapat dilihat oleh siswa maupun orang tua di modul pencarian. Cocok untuk menyederhanakan tampilan hasil TKA agar ramah anak SD.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 pt-2">
           
           {/* Toggle 1: Show stars */}
           <div className={`p-4 rounded-xl border transition-all ${config.showStarsToStudent ? 'bg-amber-50/70 border-amber-300 shadow-2xs' : 'bg-slate-50 border-slate-200 opacity-75'}`}>
@@ -532,6 +532,28 @@ export default function AdminPanel({
               </div>
               <span className={`text-[10px] font-bold mt-4 block ${config.showDetailsToStudent ? 'text-purple-600' : 'text-slate-400'}`}>
                 {config.showDetailsToStudent ? '● Aktif' : '○ Disembunyikan'}
+              </span>
+            </label>
+          </div>
+
+          {/* Toggle 6: Disable/Enable KKM */}
+          <div className={`p-4 rounded-xl border transition-all ${!config.disableKkm ? 'bg-indigo-50/70 border-indigo-300 shadow-2xs' : 'bg-rose-50/70 border-rose-300 shadow-2xs'}`}>
+            <label className="flex flex-col h-full justify-between cursor-pointer">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl">{config.disableKkm ? '🚫' : '🎯'}</span>
+                  <input
+                    type="checkbox"
+                    checked={!config.disableKkm}
+                    onChange={(e) => onUpdateConfig({ ...config, disableKkm: !e.target.checked })}
+                    className={`h-4.5 w-4.5 rounded-full border-slate-300 cursor-pointer ${config.disableKkm ? 'text-rose-500 focus:ring-rose-500' : 'text-indigo-500 focus:ring-indigo-500'}`}
+                  />
+                </div>
+                <h5 className="text-xs font-bold text-slate-800 mt-2">Sistem Kelulusan KKM</h5>
+                <p className="text-[10px] text-slate-500 font-medium leading-tight">Gunakan standar batas KKM ({config.kkm}) atau nonaktifkan untuk mengabaikan KKM (semua tuntas).</p>
+              </div>
+              <span className={`text-[10px] font-bold mt-4 block ${!config.disableKkm ? 'text-indigo-600' : 'text-rose-600'}`}>
+                {!config.disableKkm ? '● Sistem KKM Aktif' : '○ KKM Dinonaktifkan'}
               </span>
             </label>
           </div>

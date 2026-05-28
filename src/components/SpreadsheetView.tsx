@@ -57,8 +57,9 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
 
   // Handles updating individual cell score
   const handleScoreChange = (studentId: string, subject: string, valStr: string) => {
-    const rawVal = parseInt(valStr);
-    const val = isNaN(rawVal) ? 0 : Math.min(100, Math.max(0, rawVal));
+    const normalizedVal = valStr.replace(',', '.');
+    const rawVal = parseFloat(normalizedVal);
+    const val = isNaN(rawVal) ? 0 : Math.min(100, Math.max(0, Math.round(rawVal * 100) / 100));
 
     const updated = sheetsData.map((sheet) => {
       if (sheet.id === activeSheet.id) {
@@ -264,8 +265,9 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
         const scores: Record<string, number> = {};
 
         parsedSubjects.forEach((sub, subIdx) => {
-          const val = columns[subIdx + 1] ? parseInt(columns[subIdx + 1].trim()) : 0;
-          scores[sub.name] = isNaN(val) ? 0 : Math.min(100, Math.max(0, val));
+          const colStr = columns[subIdx + 1] ? columns[subIdx + 1].trim().replace(',', '.') : '0';
+          const val = parseFloat(colStr);
+          scores[sub.name] = isNaN(val) ? 0 : Math.min(100, Math.max(0, Math.round(val * 100) / 100));
         });
 
         const { totalScore, average } = calculateStudentStats(scores);
@@ -459,22 +461,27 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
                       key={`${sub.name}-${sIdx}`}
                       onClick={() => setEditingCell({ studentId: student.id, subject: sub.name })}
                       className={`px-1 py-1 text-center border-r border-slate-100 font-mono text-xs cursor-pointer select-none transition-colors ${
-                        val < config.kkm ? 'text-red-500 bg-red-50/10' : 'text-slate-700'
+                        (config.disableKkm ? false : val < config.kkm) ? 'text-red-500 bg-red-50/10' : 'text-slate-700'
                       }`}
                     >
                       {isEditing ? (
                         <input
-                          type="number"
-                          value={val || ''}
+                          type="text"
+                          defaultValue={val}
                           autoFocus
-                          onBlur={() => setEditingCell(null)}
-                          onChange={(e) => handleScoreChange(student.id, sub.name, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === 'Escape') setEditingCell(null);
+                          onBlur={(e) => {
+                            handleScoreChange(student.id, sub.name, e.target.value);
+                            setEditingCell(null);
                           }}
-                          className="w-16 text-center border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:outline-hidden py-0.5 px-1 bg-white"
-                          min={0}
-                          max={100}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === 'Escape') {
+                              if (e.key === 'Enter') {
+                                handleScoreChange(student.id, sub.name, (e.target as any).value);
+                              }
+                              setEditingCell(null);
+                            }
+                          }}
+                          className="w-16 text-center border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:outline-hidden py-0.5 px-1 bg-white font-mono text-xs font-bold"
                         />
                       ) : (
                         <span className="font-bold underline decoration-slate-200 decoration-dotted">{val}</span>
@@ -486,11 +493,11 @@ export default function SpreadsheetView({ sheetsData, onUpdateSheets, config }: 
                 <td className="px-3 py-2 border-r border-slate-100 text-center font-mono font-bold text-slate-800 bg-slate-50/40">{student.average}</td>
                 <td className="px-3 py-2 border-r border-slate-100 text-center font-sans font-semibold">
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                    student.average >= config.kkm
+                    (config.disableKkm ? true : student.average >= config.kkm)
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                       : 'bg-rose-50 text-rose-700 border border-rose-100'
                   }`}>
-                    {student.average >= config.kkm ? 'TUNTAS' : 'REMEDIAL'}
+                    {(config.disableKkm ? true : student.average >= config.kkm) ? 'TUNTAS' : 'REMEDIAL'}
                   </span>
                 </td>
                 <td className="px-2 py-2 text-center">

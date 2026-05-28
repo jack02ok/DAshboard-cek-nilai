@@ -180,7 +180,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
       sheet.students.forEach((stu) => {
         sumOfAverages += stu.average;
-        if (stu.average >= config.kkm) {
+        if (config.disableKkm ? true : stu.average >= config.kkm) {
           studentsPassed++;
         }
 
@@ -215,7 +215,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
       const avg = studentCount > 0 ? Math.round((totalAverage / studentCount) * 10) / 10 : 0;
 
       // Calculate passes for this sheet
-      const passed = sheet.students.filter(s => s.average >= config.kkm).length;
+      const passed = sheet.students.filter(s => (config.disableKkm ? true : s.average >= config.kkm)).length;
       const passRate = studentCount > 0 ? Math.round((passed / studentCount) * 100) : 0;
 
       return {
@@ -283,11 +283,24 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
   // 5A. Live Student Suggester for general search suggestions
   const studentSuggestions = useMemo(() => {
-    if (!suggestionSearch.trim()) return [];
+    const trimmedQuery = suggestionSearch.trim().toLowerCase();
+    if (!trimmedQuery) return [];
+    
+    // Split query by spaces to match individual word components (adaptation for injected data search)
+    const keywords = trimmedQuery.split(/\s+/).filter(Boolean);
+    
     const list: (Student & { sheetName: string })[] = [];
     sheetsData.forEach((sheet) => {
       sheet.students.forEach((stu) => {
-        if (stu.name.toLowerCase().includes(suggestionSearch.toLowerCase())) {
+        const studentNameLower = stu.name.toLowerCase();
+        const studentIdLower = stu.id.toLowerCase();
+        
+        // True if all searched keywords match either student name or id
+        const isMatch = keywords.every(kw => 
+          studentNameLower.includes(kw) || studentIdLower.includes(kw)
+        );
+        
+        if (isMatch) {
           list.push({
             ...stu,
             sheetName: sheet.name
@@ -1039,7 +1052,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                 {config.showAverageToStudent !== false ? (
                   <>
                     <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">RATA-RATA NILAI</p>
-                    <p className={`text-3xl font-black font-mono mt-0.5 ${selectedStudent.average >= config.kkm ? 'text-emerald-650' : 'text-rose-500'}`}>
+                    <p className={`text-3xl font-black font-mono mt-0.5 ${(config.disableKkm ? true : selectedStudent.average >= config.kkm) ? 'text-emerald-650' : 'text-rose-500'}`}>
                       {selectedStudent.average}
                     </p>
                   </>
@@ -1049,9 +1062,9 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
 
                 {config.showRankToStudent !== false ? (
                   <span className={`inline-block mt-2 px-3 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase border ${
-                    selectedStudent.average >= config.kkm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                    (config.disableKkm ? true : selectedStudent.average >= config.kkm) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
                   }`}>
-                    {selectedStudent.average >= config.kkm ? '🎉 Lulus Tuntas' : '📚 Belum Tuntas / Remedial'}
+                    {(config.disableKkm ? true : selectedStudent.average >= config.kkm) ? '🎉 Lulus Tuntas' : '📚 Belum Tuntas / Remedial'}
                   </span>
                 ) : (
                   <span className="inline-block mt-2 px-3 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-blue-50 text-blue-700 border border-blue-100">
@@ -1066,12 +1079,12 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
               <div className="px-5 pb-4 pt-2 border-t border-slate-100">
                 <div className="flex justify-between text-[10px] font-mono font-bold text-slate-400 mb-1">
                   <span>Mulai Belajar (0)</span>
-                  <span>Point KKM ({config.kkm})</span>
+                  <span>{config.disableKkm ? 'Sistem KKM Nonaktif' : 'Point KKM (' + config.kkm + ')'}</span>
                   <span>Nilai Maksimal (100)</span>
                 </div>
                 <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
                   <div
-                    className={`h-2 rounded-full transition-all duration-500 ${selectedStudent.average >= config.kkm ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                    className={`h-2 rounded-full transition-all duration-500 ${(config.disableKkm ? true : selectedStudent.average >= config.kkm) ? 'bg-emerald-500' : 'bg-rose-500'}`}
                     style={{ width: `${Math.min(100, selectedStudent.average)}%` }}
                   ></div>
                 </div>
@@ -1127,7 +1140,7 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                   {Object.entries(selectedStudent.scores).map(([subject, val]) => {
                     const score = Number(val);
                     const category = getSubjectCategory(subject);
-                    const passed = score >= config.kkm;
+                    const passed = config.disableKkm ? true : score >= config.kkm;
 
                     return (
                       <div

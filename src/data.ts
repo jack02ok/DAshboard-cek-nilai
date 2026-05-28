@@ -25,8 +25,9 @@ export const getSubjectCategory = (subjectName: string): string => {
 export const calculateStudentStats = (scores: Record<string, number>): { totalScore: number; average: number } => {
   const scoreValues = Object.values(scores);
   if (scoreValues.length === 0) return { totalScore: 0, average: 0 };
-  const totalScore = scoreValues.reduce((sum, val) => sum + val, 0);
-  const average = Math.round((totalScore / scoreValues.length) * 10) / 10;
+  const rawTotalScore = scoreValues.reduce((sum, val) => sum + val, 0);
+  const totalScore = Math.round(rawTotalScore * 100) / 100;
+  const average = Math.round((totalScore / scoreValues.length) * 100) / 100;
   return { totalScore, average };
 };
 

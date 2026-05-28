@@ -29,6 +29,7 @@ export interface DashboardConfig {
   showRankToStudent?: boolean; // Tampilkan status kelulusan/remedial
   showStarsToStudent?: boolean; // Tampilkan bintang prestasi lucu (ciri khas SD)
   showQuotesToStudent?: boolean; // Tampilkan kalimat motivasi ramah anak
+  disableKkm?: boolean; // Menonaktifkan Kriteria Ketuntasan Minimal (KKM)
 }
 
 export interface UserSession {

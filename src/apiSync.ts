@@ -103,7 +103,9 @@ export function sanitizeAndCleanSheetData(
             cleanedScores[sub.name] = 75; // school default KKM starting limit
             missingScoreDefaultedCount++;
           } else {
-            const parsedScore = Math.round(Number(rawScore));
+            const scoreStr = String(rawScore).replace(',', '.');
+            const parsedScoreNum = parseFloat(scoreStr);
+            const parsedScore = isNaN(parsedScoreNum) ? 0 : Math.round(parsedScoreNum * 100) / 100;
             if (isNaN(parsedScore)) {
               cleanedScores[sub.name] = 0;
               missingScoreDefaultedCount++;
@@ -241,8 +243,10 @@ function parseGoogleSheetsCSV(csvText: string): SheetData[] {
 
     headers.slice(1).forEach((subName, sIdx) => {
       const colVal = cols[sIdx + 1];
-      const parsed = parseInt(colVal);
-      scores[subName] = isNaN(parsed) ? 75 : parsed;
+      const normalizedVal = colVal ? colVal.replace(',', '.') : '';
+      const parsedNum = parseFloat(normalizedVal);
+      const parsed = isNaN(parsedNum) ? 75 : Math.round(parsedNum * 100) / 100;
+      scores[subName] = parsed;
     });
 
     const { totalScore, average } = calculateStudentStats(scores);

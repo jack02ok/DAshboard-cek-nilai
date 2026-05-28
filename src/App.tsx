@@ -68,7 +68,8 @@ export default function App() {
       showAverageToStudent: true,
       showRankToStudent: true,
       showStarsToStudent: true,
-      showQuotesToStudent: true
+      showQuotesToStudent: true,
+      disableKkm: false
     };
     if (saved) {
       try {
@@ -159,6 +160,7 @@ export default function App() {
           showRankToStudent: data.showRankToStudent !== undefined ? data.showRankToStudent : prev.showRankToStudent,
           showStarsToStudent: data.showStarsToStudent !== undefined ? data.showStarsToStudent : prev.showStarsToStudent,
           showQuotesToStudent: data.showQuotesToStudent !== undefined ? data.showQuotesToStudent : prev.showQuotesToStudent,
+          disableKkm: data.disableKkm !== undefined ? data.disableKkm : prev.disableKkm,
         }));
       } else {
         // First-run bootstrap
@@ -171,7 +173,8 @@ export default function App() {
           showAverageToStudent: true,
           showRankToStudent: true,
           showStarsToStudent: true,
-          showQuotesToStudent: true
+          showQuotesToStudent: true,
+          disableKkm: false
         };
         setDoc(doc(db, 'portal_data', 'config'), initialConfig).catch(console.error);
         localStorage.setItem('dashboard_config_v1', JSON.stringify(initialConfig));
@@ -388,7 +391,8 @@ export default function App() {
       showAverageToStudent: true,
       showRankToStudent: true,
       showStarsToStudent: true,
-      showQuotesToStudent: true
+      showQuotesToStudent: true,
+      disableKkm: false
     };
     const defaultAccess = {
       isDataVisible: true,
