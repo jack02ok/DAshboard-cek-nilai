@@ -54,7 +54,17 @@ export default function App() {
   // 2. Core spreadsheet data state
   const [sheetsData, setSheetsData] = useState<SheetData[]>(() => {
     const saved = localStorage.getItem('sheet_data_v1');
-    return saved ? JSON.parse(saved) : INITIAL_SHEETS_DATA;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.some((s: any) => s.id === 'sheet-tka')) {
+          return parsed;
+        }
+      } catch {
+        // fallback
+      }
+    }
+    return INITIAL_SHEETS_DATA;
   });
 
   const [config, setConfig] = useState<DashboardConfig>(() => {
@@ -202,7 +212,16 @@ export default function App() {
       if (snapshot.exists()) {
         const payload = snapshot.data();
         if (payload && Array.isArray(payload.data)) {
-          setSheetsData(payload.data);
+          // Auto-migrate database to include the new exact TKA student dataset if sheet-tka is missing
+          const hasTka = payload.data.some((s: any) => s.id === 'sheet-tka');
+          if (!hasTka) {
+            console.log("Migrating database to SDN Neglasari 02 Hasil TKA");
+            setDoc(doc(db, 'portal_data', 'sheets'), { data: INITIAL_SHEETS_DATA }).catch(console.error);
+            setSheetsData(INITIAL_SHEETS_DATA);
+            localStorage.setItem('sheet_data_v1', JSON.stringify(INITIAL_SHEETS_DATA));
+          } else {
+            setSheetsData(payload.data);
+          }
         }
       } else {
         setDoc(doc(db, 'portal_data', 'sheets'), { data: INITIAL_SHEETS_DATA }).catch(console.error);

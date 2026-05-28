@@ -78,9 +78,14 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
     return list.filter((std) => {
       const studentNameLower = std.name.toLowerCase();
       const studentIdLower = std.id.toLowerCase();
+      const nisnLower = (std.nisn || '').toLowerCase();
+      const nomorPesertaLower = (std.nomorPeserta || '').toLowerCase();
       
       const matchName = keywords.length === 0 || keywords.every(kw => 
-        studentNameLower.includes(kw) || studentIdLower.includes(kw)
+        studentNameLower.includes(kw) || 
+        studentIdLower.includes(kw) || 
+        nisnLower.includes(kw) || 
+        nomorPesertaLower.includes(kw)
       );
       const matchLevel = selectedSheetId === 'all' || std.sheetId === selectedSheetId;
       const matchCategory = selectedCategory === 'all' || std.categoryStats.count > 0;
@@ -298,11 +303,18 @@ export default function StudentSearch({ sheetsData, config }: StudentSearchProps
                     {avatarEmoji}
                   </div>
                   <div className="space-y-0.5">
-                    <div className="flex items-center space-x-1.5">
+                    <div className="flex items-center space-x-1.5 flex-wrap gap-y-0.5">
                       <span className="text-[9px] font-mono text-indigo-500 bg-indigo-50 px-1.5 py-0.2 rounded font-bold uppercase">{std.id.replace('std-', 'ID#')}</span>
                       <span className="text-[10px] font-black text-rose-500 bg-rose-55/10 px-1.5 py-0.2 rounded font-sans">{std.sheetName}</span>
                     </div>
-                    <h4 className="text-sm font-black text-slate-800 font-sans tracking-tight">{std.name}</h4>
+                    <h4 className="text-sm font-black text-slate-800 font-sans tracking-tight leading-tight">{std.name}</h4>
+                    {(std.nisn || std.nomorPeserta) && (
+                      <div className="text-[9.5px] text-slate-500 font-mono flex flex-wrap items-center gap-x-1.5 mt-0.5 leading-none">
+                        {std.nisn && <span>NISN: <span className="text-slate-705 font-bold">{std.nisn}</span></span>}
+                        {std.nisn && std.nomorPeserta && <span className="text-slate-300">•</span>}
+                        {std.nomorPeserta && <span className="truncate">No: <span className="text-slate-705 font-bold">{std.nomorPeserta}</span></span>}
+                      </div>
+                    )}
                   </div>
                 </div>
 

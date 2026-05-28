@@ -10,6 +10,11 @@ export interface Student {
   scores: Record<string, number>; // e.g. { "Matematika": 80, "Fisika": 75, "Sejarah": 88 }
   totalScore: number;
   average: number;
+  nisn?: string;
+  nomorPeserta?: string;
+  ttl?: string;
+  predikatNumerasi?: string;
+  predikatLiterasi?: string;
 }
 
 export interface SheetData {

@@ -1044,6 +1044,28 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                     <span className="text-[9px] font-sans text-rose-500 bg-rose-50 px-2 py-0.5 rounded font-black tracking-wider uppercase">{selectedStudent.sheetName}</span>
                   </div>
                   <h4 className="text-lg font-black text-slate-800 tracking-tight leading-tight">{selectedStudent.name}</h4>
+                  
+                  {/* Detailed Student Metadata Info */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-[11px] font-medium text-slate-500 mt-1 font-mono">
+                    {selectedStudent.nisn && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400 font-extrabold font-sans">NISN:</span>
+                        <span className="text-slate-700 font-bold">{selectedStudent.nisn}</span>
+                      </div>
+                    )}
+                    {selectedStudent.nomorPeserta && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400 font-extrabold font-sans">No. Peserta:</span>
+                        <span className="text-slate-700 font-bold">{selectedStudent.nomorPeserta}</span>
+                      </div>
+                    )}
+                    {selectedStudent.ttl && (
+                      <div className="flex items-center gap-1 sm:col-span-2">
+                        <span className="text-slate-400 font-extrabold font-sans">TTL:</span>
+                        <span className="text-slate-700 font-bold">{selectedStudent.ttl}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1141,6 +1163,9 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                     const score = Number(val);
                     const category = getSubjectCategory(subject);
                     const passed = config.disableKkm ? true : score >= config.kkm;
+                    const predicate = subject === 'Numerasi' 
+                      ? selectedStudent.predikatNumerasi 
+                      : (subject === 'Literasi' ? selectedStudent.predikatLiterasi : undefined);
 
                     return (
                       <div
@@ -1153,7 +1178,14 @@ export default function Dashboard({ sheetsData, config, access, blockedCountdown
                       >
                         <div className="truncate pr-2">
                           <p className="font-extrabold text-slate-850 text-xs truncate">{subject}</p>
-                          <p className="text-[8px] text-slate-400 font-black tracking-wide uppercase bg-slate-100 px-2 py-0.2 rounded-md inline-block font-mono mt-0.5">{category}</p>
+                          <div className="flex flex-wrap gap-1 mt-1 items-center">
+                            <span className="text-[8px] text-slate-400 font-black tracking-wide uppercase bg-slate-100 px-1.5 py-0.2 rounded font-mono">{category}</span>
+                            {predicate && (
+                              <span className="text-[8.5px] text-indigo-700 bg-indigo-50 border border-indigo-100 font-extrabold px-1.5 py-0.2 rounded font-sans">
+                                Predikat: {predicate}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <span className={`font-mono font-black px-2.5 py-1.5 rounded-xl text-[13px] ${
                           passed ? 'text-emerald-700 bg-emerald-100/60' : 'text-rose-700 bg-rose-100/60'
